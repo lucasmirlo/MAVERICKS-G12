@@ -323,5 +323,6 @@
       "status": "done",
       "review_reasons": []
     }
-  ]
+  ],
+  "urgency_mode": "llm"
 }

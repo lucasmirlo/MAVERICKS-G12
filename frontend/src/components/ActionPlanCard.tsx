@@ -74,7 +74,7 @@ export function ActionPlanCard({ plan }: { plan: ActionPlan }) {
         <div className="mt-3 flex flex-wrap gap-2">
           {plan.drafts.map((d) => (
             <Button key={d.id} onClick={() => open.mutate(d.id)} busy={open.isPending && open.variables === d.id} icon={<FileText className="size-4" aria-hidden />}>
-              {d.kind === 'alternate' ? 'Correo al alternativo' : 'Correo al proveedor'} ({d.language.toUpperCase()})
+              {d.kind === 'alternate' ? 'Correo al alternativo' : d.kind === 'verification' ? 'Verificar vínculo' : 'Correo al proveedor'} ({d.language.toUpperCase()})
             </Button>
           ))}
         </div>

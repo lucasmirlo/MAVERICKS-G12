@@ -40,6 +40,7 @@ ACTION_LABELS = {
     "start_dual_sourcing": "Iniciar la cualificación de una segunda fuente",
     "reroute_logistics": "Cambiar de transportista o de ruta",
     "escalate_planning": "Avisar a planificación de producción",
+    "verify_link": "Confirmar con el proveedor si el evento afecta a su planta u operación",
 }
 DEADLINE_LABELS = {"hoy": "Hoy", "esta_semana": "Esta semana", "proximo_informe": "Próximo informe semanal"}
 SPANISH_SPEAKING = {"Spain", "Mexico", "Argentina", "Chile", "Colombia", "Peru", "Uruguay", "Ecuador", "Bolivia", "Paraguay",
@@ -90,7 +91,9 @@ def build_facts(db: Session, inc: Incident, policy: dict) -> dict:
                       "fecha_evento": event_date.date().isoformat() if event_date else None, "titular": headline,
                       "duracion_dias": a.duration_days if a else None,
                       "duracion_es_minima": bool(a and a.duration_is_lower_bound),
-                      "decision": a.decision_source if a else None},
+                      "decision": a.decision_source if a else None,
+                      "vinculo": {"base": a.link_basis if a else None, "p_vinculo": round(a.p_link, 2) if a else None,
+                                  "ia_discrepa": bool(a and "llm_disagrees" in (a.review_reasons or []))}},
         "proveedor": {"id": s.supplier_id, "nombre": s.name, "ciudad": s.city, "pais": s.country, "categoria": s.category,
                       "material": s.material, "fuente_unica": s.single_source == "Y", "criticidad": s.criticality},
         "stock": {"margen_dias": "no aplica" if not_applicable else (cover if cover is not None else "no informado"),
@@ -140,6 +143,13 @@ def choose_actions(facts: dict, policy: dict) -> list[dict]:
         out.append(("start_dual_sourcing", "Fuente única de criticidad alta " + ("y urgente" if urgent else "con evento prolongado")))
     if sup["categoria"] == "Logistics":
         out.append(("reroute_logistics", "Proveedor logístico afectado" + (f"; alternativo {alt['nombre']}" if alt else "")))
+    link = inc.get("vinculo") or {}
+    weak = (link.get("base") == "inferred_region" or (link.get("p_vinculo") is not None and link["p_vinculo"] < rules.get("verify_link_max_p_link", 0.65))
+            or link.get("ia_discrepa"))
+    if weak:
+        why = ("Vínculo solo por región inferida" if link.get("base") == "inferred_region" else
+               "La IA discrepa de la decisión" if link.get("ia_discrepa") else f"Probabilidad de vínculo {link.get('p_vinculo')}")
+        out.append(("verify_link", why))
     exceeds = duration is not None and cover is not None and duration > cover
     unknown_single = duration is None and sup["fuente_unica"]
     if urgent and (exceeds or unknown_single):
@@ -236,6 +246,25 @@ def _supplier_mail(facts: dict, lang: str) -> tuple[str, str]:
     return subject, body
 
 
+def _verification_mail(facts: dict, lang: str) -> tuple[str, str]:
+    inc, sup = facts["incidente"], facts["proveedor"]
+    if lang == "es":
+        subject = f"Verificación: ¿os afecta «{inc['titular']}»?"
+        body = "\n".join([f"Hola equipo de {sup['nombre']}:", "",
+                          f"Hemos visto una noticia publicada el {spanish_date(inc['fecha_evento'])} («{inc['titular']}») y no tenemos "
+                          f"confirmado si vuestra planta u operación en {sup['ciudad']} está dentro del área o del alcance afectado.", "",
+                          "¿Podéis confirmarnos si el evento os afecta y, en ese caso, a qué entregas para Helixa?", "",
+                          "Gracias,", "Equipo de Procurement de Helixa"])
+    else:
+        subject = f"Verification: are you affected by \"{inc['titular']}\"?"
+        body = "\n".join([f"Dear {sup['nombre']} team,", "",
+                          f"We have seen news published on {inc['fecha_evento']} (\"{inc['titular']}\") and we have not confirmed whether "
+                          f"your site or operations in {sup['ciudad']} are within the affected area or scope.", "",
+                          "Could you confirm whether the event affects you and, if so, which deliveries to Helixa?", "",
+                          "Kind regards,", "Helixa Procurement Team"])
+    return subject, body
+
+
 def _alternate_mail(facts: dict, lang: str) -> tuple[str, str]:
     sup, alt = facts["proveedor"], facts["alternativo"]
     if lang == "es":
@@ -264,6 +293,9 @@ def _sync_drafts(db: Session, plan: ActionPlan, inc: Incident) -> None:
     if "contact_supplier" in codes:
         lang = language_for(plan.facts["proveedor"]["pais"])
         wanted["supplier"] = (inc.supplier_id, lang, *_supplier_mail(plan.facts, lang))
+    if "verify_link" in codes:
+        lang = language_for(plan.facts["proveedor"]["pais"])
+        wanted["verification"] = (inc.supplier_id, lang, *_verification_mail(plan.facts, lang))
     if "shift_to_alternate" in codes and plan.facts["alternativo"]:
         alt = plan.facts["alternativo"]
         lang = language_for(alt["pais"])

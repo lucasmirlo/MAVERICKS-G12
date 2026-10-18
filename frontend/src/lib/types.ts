@@ -25,7 +25,8 @@ export interface Meta {
     event_types: string[]
   }
   audio: { cooldown_seconds: number; enabled_by_default: boolean }
-  worker: { alive: boolean; last_heartbeat: string | null }
+  worker: { alive: boolean; last_heartbeat: string | null; revision?: string | null; web_revision?: string; compatible?: boolean }
+  urgency_mode?: string
   rss: { poll_seconds: number; daily_budget: number; enabled: boolean }
   generator_available: boolean
   catalog: { suppliers: number }
@@ -115,7 +116,7 @@ export interface ActionPlan {
   summary: string
   summary_source: 'template' | 'llm'
   summary_error: string | null
-  drafts: { id: string; kind: 'supplier' | 'alternate'; language: string; subject: string; edited: boolean; target_supplier_id: string }[]
+  drafts: { id: string; kind: 'supplier' | 'alternate' | 'verification'; language: string; subject: string; edited: boolean; target_supplier_id: string }[]
   updated_at: string
 }
 
@@ -274,7 +275,7 @@ export interface Incident {
 
 export interface Draft {
   id: string
-  kind: 'supplier' | 'alternate'
+  kind: 'supplier' | 'alternate' | 'verification'
   supplier_id: string
   target_supplier_id: string
   incident_id: string | null
@@ -374,6 +375,8 @@ export interface BatchProgress {
   analysis_requested_at: string | null
   analysis_completed_at: string | null
   elapsed_seconds: number | null
+  queue_seconds?: number | null
+  processing_seconds?: number | null
   counts: { done: number; review: number; error: number; running: number; pending: number; not_started: number }
   jobs: Record<string, number>
   completed: number
@@ -382,7 +385,33 @@ export interface BatchProgress {
   errors?: { news_id: string; article_id: string; error_code: string; error_message: string; retryable: boolean; analysis_id: string }[]
 }
 
+export interface AttentionItem {
+  incident_id: string
+  supplier_id: string
+  supplier_name: string
+  material: string | null
+  city: string | null
+  country: string | null
+  criticality: string | null
+  single_source: YN | null
+  priority: number | null
+  priority_band: Band | null
+  urgent: YN
+  event_type: string | null
+  needs_review: boolean
+  decision_source: DecisionSource | null
+  headline: string | null
+  article_id: string | null
+  published_at: string | null
+  next_actions: { code: string; label: string; deadline: string }[]
+  stock_margin: number | string | null
+  products: string[] | string | null
+  summary: string | null
+  summary_source: string | null
+}
+
 export interface Overview {
+  attention: AttentionItem[]
   context_id: ContextId
   batch_id: string | null
   context_label: string

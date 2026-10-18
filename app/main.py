@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .api import presenter, public
+from .api import model, presenter, public
 from .config import get_settings
 from .db import SessionLocal
 from .logging_setup import setup_logging
@@ -85,6 +85,7 @@ def readyz():
 
 app.include_router(public.router, prefix="/api")
 app.include_router(presenter.router, prefix="/api")
+app.include_router(model.router, prefix="/api")
 
 static_dir = get_settings().resolve(get_settings().static_dir)
 if (static_dir / "assets").is_dir():

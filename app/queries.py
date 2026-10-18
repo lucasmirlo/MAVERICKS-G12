@@ -105,6 +105,42 @@ def products_by_supplier(db: Session) -> dict[str, dict]:
     return out
 
 
+DEADLINE_ORDER = {"hoy": 0, "esta_semana": 1, "proximo_informe": 2}
+
+
+def attention_desk(db: Session, context_id: str, batch_id: str | None = None, limit: int = 6) -> list[dict]:
+    """Mesa de atención: incidentes activos ordenados por urgencia y prioridad, con la siguiente acción de su plan."""
+    from .models import ActionPlan
+    stmt = select(Incident).where(Incident.context_id == context_id, Incident.status != "resolved")
+    if batch_id:
+        stmt = stmt.where(Incident.batch_id == batch_id)
+    incs = sorted(db.scalars(stmt), key=lambda i: (i.urgent != "Y", -(i.current_priority or 0), i.supplier_id))[:limit]
+    out = []
+    for inc in incs:
+        s = db.get(Supplier, inc.supplier_id)
+        plan = db.scalar(select(ActionPlan).where(ActionPlan.incident_id == inc.id))
+        actions = sorted(plan.actions if plan else [], key=lambda a: (DEADLINE_ORDER.get(a["deadline"], 9), a["code"] == "monitor"))
+        a = db.scalar(select(SupplierAssessment).where(SupplierAssessment.incident_id == inc.id)
+                      .order_by(SupplierAssessment.priority.desc().nulls_last()).limit(1))
+        link = db.scalar(select(IncidentArticle).where(IncidentArticle.incident_id == inc.id).order_by(IncidentArticle.published_at.desc()).limit(1))
+        art = db.get(Article, link.article_id) if link else None
+        ver = db.get(ArticleVersion, art.current_version_id) if art else None
+        facts = plan.facts if plan else {}
+        out.append({
+            "incident_id": inc.id, "supplier_id": s.supplier_id, "supplier_name": s.name, "material": s.material,
+            "city": s.city, "country": s.country, "criticality": s.criticality, "single_source": s.single_source,
+            "priority": inc.current_priority, "priority_band": inc.priority_band, "urgent": inc.urgent,
+            "event_type": inc.event_type, "needs_review": inc.needs_review, "decision_source": a.decision_source if a else None,
+            "headline": ver.headline if ver else None, "article_id": art.id if art else None,
+            "published_at": iso(art.published_at) if art else None,
+            "next_actions": [{"code": x["code"], "label": x["label"], "deadline": x["deadline"]} for x in actions[:2]],
+            "stock_margin": (facts.get("stock") or {}).get("margen_dias"), "products": facts.get("productos"),
+            "summary": (plan.summary_llm if plan and plan.summary_source == "llm" else plan.summary_template) if plan else None,
+            "summary_source": plan.summary_source if plan else None,
+        })
+    return out
+
+
 def plan_dict(db: Session, incident_id: str) -> dict | None:
     from .actions import DEADLINE_LABELS
     from .models import ActionPlan, Draft
@@ -344,14 +380,20 @@ def batch_progress(db: Session, batch: ImportBatch) -> dict:
                 durations.append(an.duration_ms)
     jobs = db.execute(select(Job.status, func.count()).where(Job.batch_id == batch.id).group_by(Job.status)).all()
     elapsed = None
+    queue_seconds = processing_seconds = None
     if batch.analysis_requested_at:
         end = batch.analysis_completed_at or utcnow()
         elapsed = (end - batch.analysis_requested_at).total_seconds()
+        first_start = db.scalar(select(func.min(Job.started_at)).where(Job.batch_id == batch.id, Job.kind == "analyze_article",
+                                                                        Job.started_at >= batch.analysis_requested_at))
+        if first_start:
+            queue_seconds = max(0.0, (first_start - batch.analysis_requested_at).total_seconds())
+            processing_seconds = max(0.0, (end - first_start).total_seconds())
     return {"id": batch.id, "kind": batch.kind, "split": batch.split, "context_id": batch.context_id, "file_name": batch.file_name,
             "sheet_name": batch.sheet_name, "file_sha256": batch.file_sha256[:12], "row_count": total, "has_labels": batch.has_labels,
             "logical_date": iso(batch.logical_date), "created_at": iso(batch.created_at), "diagnostics": batch.diagnostics,
             "analysis_requested_at": iso(batch.analysis_requested_at), "analysis_completed_at": iso(batch.analysis_completed_at),
-            "elapsed_seconds": elapsed, "counts": counts, "jobs": {s: n for s, n in jobs},
+            "elapsed_seconds": elapsed, "queue_seconds": queue_seconds, "processing_seconds": processing_seconds, "counts": counts, "jobs": {s: n for s, n in jobs},
             "completed": counts["done"] + counts["review"], "latency": latency(durations),
             "llm": {**{k: v for k, v in llm_stats.items() if k != "latencies_ms"}, "n_calls": len(llm_stats["latencies_ms"]),
                     "mean_latency_ms": int(sum(llm_stats["latencies_ms"]) / len(llm_stats["latencies_ms"])) if llm_stats["latencies_ms"] else None}}

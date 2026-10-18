@@ -170,7 +170,8 @@ def scheduler_loop(worker_id: str) -> None:
     while not stop_event.is_set():
         try:
             with SessionLocal() as db:
-                set_state(db, "worker_heartbeat", {"at": utcnow().isoformat(), "id": worker_id})
+                from .revision import code_revision
+                set_state(db, "worker_heartbeat", {"at": utcnow().isoformat(), "id": worker_id, "revision": code_revision()})
                 # Trabajos que fallaron solo por falta de clave o de catálogo vuelven a la cola cuando ya existen.
                 resolved = []
                 if get_settings().jev_configured or get_settings().demo_fixtures_enabled:

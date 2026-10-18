@@ -50,6 +50,7 @@ def requeue(db: Session, job: Job, *, priority: int | None = None) -> None:
     job.error_code = job.error_message = None
     job.lease_owner = job.lease_until = None
     job.finished_at = None
+    job.started_at = None  # para medir cola y proceso de la nueva ejecución
     if priority is not None:
         job.priority = priority
 

@@ -11,6 +11,9 @@ const ArticleDetail = lazy(() => import('./pages/ArticleDetail'))
 const Alerts = lazy(() => import('./pages/Alerts'))
 const Sources = lazy(() => import('./pages/Sources'))
 const Presenter = lazy(() => import('./pages/Presenter'))
+const Model = lazy(() => import('./pages/Model'))
+const Materials = lazy(() => import('./pages/Materials'))
+const Drafts = lazy(() => import('./pages/Drafts'))
 
 export default function App() {
   return (
@@ -25,6 +28,9 @@ export default function App() {
           <Route path="/alertas" element={<Alerts />} />
           <Route path="/fuentes" element={<Sources />} />
           <Route path="/presentador" element={<Presenter />} />
+          <Route path="/modelo" element={<Model />} />
+          <Route path="/materiales" element={<Materials />} />
+          <Route path="/borradores" element={<Drafts />} />
           <Route
             path="*"
             element={

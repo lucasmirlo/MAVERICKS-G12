@@ -34,7 +34,7 @@ export function DecisionBadge({ source, llmStatus }: { source: DecisionSource | 
 export function LlmReasoning({ decision, status }: { decision: LlmDecision | null | undefined; status?: LlmStatus | null }) {
   if (!decision) return null
   if (decision.error) {
-    return <p className="mt-2 text-xs text-review">Sin segunda opinión de la IA ({decision.error}); se conserva la decisión de la regla.</p>
+    return <p className="mt-2 text-xs text-review">Sin opinión de la IA ({decision.error}); la decisión no depende de ella salvo en modo llm.</p>
   }
   if (!decision.razonamiento) return null
   return (

@@ -49,7 +49,7 @@ export function DraftDialog({ draft, onClose }: { draft: Draft | null; onClose: 
         <Dialog.Content className="fixed inset-0 z-50 flex flex-col bg-surface fade-in sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[90dvh] sm:w-[min(94vw,720px)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:shadow-xl">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <div>
-              <Dialog.Title className="text-base font-semibold">{draft?.kind === 'alternate' ? 'Consulta al alternativo' : 'Consulta al proveedor'}</Dialog.Title>
+              <Dialog.Title className="text-base font-semibold">{draft?.kind === 'alternate' ? 'Consulta al alternativo' : draft?.kind === 'verification' ? 'Verificación de vínculo' : 'Consulta al proveedor'}</Dialog.Title>
               <Dialog.Description className="text-xs text-ink-2">Borrador editable. Se copia o descarga; la aplicación nunca lo envía.</Dialog.Description>
             </div>
             <Dialog.Close className="rounded-md p-2 hover:bg-lavender" aria-label="Cerrar borrador">

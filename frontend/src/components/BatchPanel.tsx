@@ -49,6 +49,23 @@ export function BatchPanel({ batch }: { batch: BatchProgress }) {
     },
     onError: (e) => setMsg({ tone: 'err', text: e instanceof ApiError ? e.message : 'No se pudo reiniciar.' }),
   })
+  const exportCsv = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/batches/${batch.id}/export.csv`, { credentials: 'same-origin' })
+      if (!res.ok) throw new ApiError(res.status, 'export_error', 'No se pudo exportar el CSV.', null, false)
+      const url = URL.createObjectURL(await res.blob())
+      const a = document.createElement('a')
+      a.href = url
+      a.download = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'resultados.csv'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+      return a.download
+    },
+    onSuccess: (name) => setMsg({ tone: 'ok', text: `Descargado ${name}.` }),
+    onError: (e) => setMsg({ tone: 'err', text: e instanceof ApiError ? e.message : 'No se pudo exportar.' }),
+  })
   const finalRun = batch.split === 'test' || batch.split === 'liveday'
   const engineReady = meta?.engine.mode === 'jev' || meta?.engine.mode === 'fixture'
   return (
@@ -76,6 +93,9 @@ export function BatchPanel({ batch }: { batch: BatchProgress }) {
           <Button onClick={() => exportFile.mutate()} busy={exportFile.isPending} disabled={!batch.export?.ready} icon={<Download className="size-4" aria-hidden />}>
             Exportar XLSX
           </Button>
+          <Button onClick={() => exportCsv.mutate()} busy={exportCsv.isPending} disabled={!batch.export?.ready} icon={<Download className="size-4" aria-hidden />}>
+            CSV
+          </Button>
         </div>
       </div>
       <div className="mt-3" aria-label="Progreso del lote">
@@ -91,6 +111,7 @@ export function BatchPanel({ batch }: { batch: BatchProgress }) {
           <div><dt className="text-ink-2">Con error</dt><dd className="tabular font-semibold text-urgent">{c.error}</dd></div>
           <div><dt className="text-ink-2">Pendientes</dt><dd className="tabular font-semibold">{c.pending + c.running + c.not_started}</dd></div>
           <div><dt className="text-ink-2">Tiempo</dt><dd className="tabular font-semibold">{fmtSeconds(elapsed)}{running ? ' (en curso)' : ''}</dd></div>
+          <div><dt className="text-ink-2">En cola / procesando</dt><dd className="tabular font-semibold">{batch.queue_seconds != null ? `${fmtSeconds(batch.queue_seconds)} / ${fmtSeconds(batch.processing_seconds)}` : '—'}</dd></div>
           <div><dt className="text-ink-2">Latencia p50 / p95</dt><dd className="tabular font-semibold">{batch.latency.n ? `${fmtNum((batch.latency.p50_ms ?? 0) / 1000)} / ${fmtNum((batch.latency.p95_ms ?? 0) / 1000)} s` : '—'}</dd></div>
           <div><dt className="text-ink-2">Muestra</dt><dd className="tabular font-semibold">n = {batch.latency.n}</dd></div>
         </dl>

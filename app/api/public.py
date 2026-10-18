@@ -29,6 +29,7 @@ from ..models import (
 )
 from ..jev.questions import QUESTION_VERSION
 from ..pipeline import engine_mode
+from ..revision import code_revision
 from ..policy import active_policy
 from ..security import ApiError, presenter_configured, read_session
 from ..llm import status as llm_status
@@ -80,7 +81,9 @@ def meta(request: Request, db: Session = Depends(get_db)):
                    "criticality": policy["criticality"], "severity_floor": policy["severity_floor"], "exposure_weight": policy["exposure_weight"],
                    "buffer_not_applicable_categories": policy["buffer_not_applicable_categories"],
                    "event_types": list(policy["event_types"].keys())},
-        "audio": policy["audio"], "worker": {"alive": worker_alive, "last_heartbeat": hb["at"] if hb else None},
+        "audio": policy["audio"],
+        "worker": {"alive": worker_alive, "last_heartbeat": hb["at"] if hb else None, "revision": (hb or {}).get("revision"),
+                   "web_revision": code_revision(), "compatible": bool(hb and hb.get("revision") == code_revision())},
         "rss": {"poll_seconds": s.rss_poll_seconds, "daily_budget": s.rss_daily_analysis_budget, "enabled": s.rss_enabled},
         "generator_available": generator_available(),
         "llm": llm_status(), "urgency_mode": s.urgency_mode,
@@ -155,6 +158,7 @@ def overview(context_id: str = Depends(ctx_param), batch_id: str | None = None, 
             "batches_total": len(excel),
         },
         "ranking": rank[:12], "latest": [q.article_brief(db, a, analyses[a.id]) for a in latest], "sources": sources,
+        "attention": q.attention_desk(db, context_id, batch_id),
         "priority_distribution": bands, "by_source": by_source, "latency": q.latency(durations),
         "batches": excel,
     }
@@ -328,6 +332,27 @@ def export(batch_id: str, db: Session = Depends(get_db)):
                     headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
+@router.get("/batches/{batch_id}/export.csv")
+def export_csv(batch_id: str, db: Session = Depends(get_db)):
+    import csv
+    import io
+    from ..export import EXPORT_COLUMNS, batch_rows, csv_safe, join_ids
+    b = db.get(ImportBatch, batch_id)
+    if b is None or b.kind != "news":
+        raise ApiError(404, "batch_not_found", "Lote no encontrado.")
+    status = export_status(db, b)
+    if not status["ready"]:
+        raise ApiError(409, "export_blocked", "La exportación final está bloqueada: hay filas pendientes, con error o de fixture.", status)
+    buf = io.StringIO()
+    w = csv.writer(buf, lineterminator="\r\n")
+    w.writerow(EXPORT_COLUMNS)
+    for r in batch_rows(db, b):
+        w.writerow([csv_safe(r["news_id"]), r["is_risk"], r["urgent"], csv_safe(join_ids(r["affected"]))])
+    name = f"supplier_risk_radar_{b.split or 'lote'}_{b.sheet_name}.csv"
+    return Response(content=buf.getvalue().encode("utf-8-sig"), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
 @router.get("/jobs/{job_id}")
 def job(job_id: str, db: Session = Depends(get_db)):
     j = db.get(Job, job_id)
@@ -393,6 +418,73 @@ def draft_dict(d: Draft) -> dict:
     return {"id": d.id, "kind": d.kind, "supplier_id": d.supplier_id, "target_supplier_id": d.target_supplier_id, "incident_id": d.incident_id,
             "article_id": d.article_id, "recipient": d.recipient, "subject": d.subject, "body": d.body, "generator": d.generator,
             "factual_context_hash": d.factual_context_hash, "edited": d.edited, "created_at": q.iso(d.created_at), "updated_at": q.iso(d.updated_at)}
+
+
+@router.get("/materials")
+def materials(context_id: str = Depends(ctx_param), batch_id: str | None = None, db: Session = Depends(get_db)):
+    """Materiales con proveedor principal y alternativo, productos y riesgo activo de cada uno en el contexto/lote."""
+    from ..models import Material, MaterialProduct
+    batch_id = batch_param(db, context_id, batch_id)
+    stmt = select(Incident).where(Incident.context_id == context_id, Incident.status != "resolved")
+    if batch_id:
+        stmt = stmt.where(Incident.batch_id == batch_id)
+    active: dict[str, dict] = {}
+    for inc in db.scalars(stmt):
+        cur = active.setdefault(inc.supplier_id, {"priority": None, "urgent": False, "incidents": 0})
+        cur["incidents"] += 1
+        cur["urgent"] = cur["urgent"] or inc.urgent == "Y"
+        if inc.current_priority is not None and (cur["priority"] is None or inc.current_priority > cur["priority"]):
+            cur["priority"] = inc.current_priority
+    names = {s.supplier_id: s for s in db.scalars(select(Supplier))}
+    prods: dict[str, list[str]] = {}
+    for mp in db.scalars(select(MaterialProduct)):
+        prods.setdefault(mp.material_id, []).append(mp.product)
+
+    def side(sid):
+        if not sid:
+            return None
+        s = names.get(sid)
+        return {"supplier_id": sid, "name": s.name if s else sid, "city": s.city if s else None, "country": s.country if s else None,
+                "single_source": s.single_source if s else None, "inventory_days": s.inventory_days if s else None,
+                "risk": active.get(sid)}
+
+    items = []
+    for m in db.scalars(select(Material).order_by(Material.row_index)):
+        prim, alt = side(m.primary_supplier_id), side(m.alternate_supplier_id)
+        prim_risk = bool(prim and prim["risk"])
+        alt_risk = bool(alt and alt["risk"])
+        if prim_risk and (alt is None or alt_risk):
+            status = "sin_salida"  # principal afectado y sin alternativo libre
+        elif prim_risk:
+            status = "con_alternativo"
+        elif alt_risk:
+            status = "alternativo_afectado"
+        else:
+            status = "sin_incidentes"
+        items.append({"material_id": m.material_id, "name": m.name, "category": m.category, "monthly_requirement": m.monthly_requirement,
+                      "unit": m.unit, "products": sorted(prods.get(m.material_id, [])), "primary": prim, "alternate": alt, "status": status})
+    order = {"sin_salida": 0, "con_alternativo": 1, "alternativo_afectado": 2, "sin_incidentes": 3}
+    items.sort(key=lambda x: (order[x["status"]], -(((x["primary"] or {}).get("risk") or {}).get("priority") or 0), x["material_id"]))
+    in_materials = {x[k]["supplier_id"] for x in items for k in ("primary", "alternate") if x[k]}
+    return {"items": items, "products": sorted({p for v in prods.values() for p in v}),
+            "suppliers_without_material": sorted(set(names) - in_materials)}
+
+
+@router.get("/drafts")
+def drafts_list(supplier_id: str | None = None, kind: str | None = None, db: Session = Depends(get_db)):
+    stmt = select(Draft).order_by(Draft.updated_at.desc())
+    if supplier_id:
+        stmt = stmt.where(Draft.supplier_id == supplier_id)
+    if kind:
+        stmt = stmt.where(Draft.kind == kind)
+    names = {s.supplier_id: s.name for s in db.scalars(select(Supplier))}
+    out = []
+    for d in db.scalars(stmt.limit(300)):
+        item = draft_dict(d)
+        item.update({"supplier_name": names.get(d.supplier_id), "target_name": names.get(d.target_supplier_id), "language": d.language,
+                     "plan_id": d.plan_id})
+        out.append(item)
+    return {"items": out, "total": len(out)}
 
 
 @router.get("/drafts/{draft_id}")

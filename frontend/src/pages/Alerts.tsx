@@ -125,7 +125,7 @@ export default function Alerts() {
                   </div>
                   <PriorityBadge value={a.priority} band={a.priority_band} />
                 </div>
-                {a.decision_source === 'llm' && <LlmReasoning decision={a.llm_decision} />}
+                {a.llm_decision?.razonamiento && <LlmReasoning decision={a.llm_decision} />}
                 {a.plan && a.incident_status !== 'resolved' && (
                   <details className="group mt-2" open={a.status === 'unread' && a.urgent === 'Y'}>
                     <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-accent-strong">

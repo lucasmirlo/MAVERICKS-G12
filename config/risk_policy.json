@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "status": "initial_policy_urgency_threshold_calibrated_on_training_only",
   "default_model": "jev-1.13.0",
   "question_version": "1.0.0",
@@ -104,7 +104,7 @@
   "urgency_rule": "is_risk and impact_status == 'active' and P >= thresholds.urgent_priority; JEV p_urgent >= thresholds.urgent is second opinion",
   "dependency_rule": "U = 1 if Single_Source = Y or the approved alternate is affected by the same article",
   "action_rules": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "prolonged_event_days": 30,
     "safety_stock_duration_fraction_of_cover": 0.5,
     "deadline_this_week_cover_days": 30,
@@ -115,7 +115,10 @@
       "increase_safety_stock",
       "start_dual_sourcing",
       "reroute_logistics",
-      "escalate_planning"
-    ]
+      "escalate_planning",
+      "verify_link"
+    ],
+    "verify_link_max_p_link": 0.65,
+    "note": "1.1.0 añade verify_link (confirmar con el proveedor un vínculo débil); las decisiones no cambian respecto a 1.1.0"
   }
 }

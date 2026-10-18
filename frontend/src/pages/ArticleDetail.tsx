@@ -113,6 +113,53 @@ function ManualDecisionForm({ analysisId }: { analysisId: string }) {
   )
 }
 
+interface Run {
+  id: string
+  version: number | null
+  status: string
+  model_id: string | null
+  question_version: string
+  policy_version: string
+  urgency_mode: string | null
+  is_risk: string | null
+  urgent: string | null
+  affected_supplier_ids: string[]
+  cached: boolean
+  finished_at: string | null
+  current: boolean
+  decision_sources: string[]
+}
+
+function RunHistory({ articleId }: { articleId: string }) {
+  const q = useQuery({ queryKey: ['runs', articleId], queryFn: () => api.get<{ items: Run[] }>(`/api/articles/${articleId}/runs`) })
+  if (!q.data || q.data.items.length < 2) return null
+  return (
+    <Card aria-labelledby="runs-h">
+      <CardHeader id="runs-h" title="Historial de análisis" subtitle="Cada fila es un análisis guardado: versión de preguntas, política y modo con que se decidió." />
+      <div className="overflow-x-auto p-3">
+        <table className="w-full min-w-[34rem] text-left text-sm">
+          <caption className="sr-only">Análisis de esta noticia</caption>
+          <thead className="text-xs text-ink-2">
+            <tr><th scope="col">Fecha</th><th scope="col">Preguntas</th><th scope="col">Política</th><th scope="col">Modo</th><th scope="col">Resultado</th><th scope="col">Estado</th></tr>
+          </thead>
+          <tbody>
+            {q.data.items.map((r) => (
+              <tr key={r.id} className="border-t border-line/70">
+                <td className="py-1.5 text-xs">{fmtDateTime(r.finished_at)}{r.cached ? ' · caché' : ''}</td>
+                <td className="tabular">{r.question_version}</td>
+                <td className="tabular">{r.policy_version}</td>
+                <td>{r.urgency_mode ?? '—'}</td>
+                <td className="tabular text-xs font-semibold">{r.is_risk ?? '—'}/{r.urgent ?? '—'}/{r.affected_supplier_ids.join('; ') || '—'}</td>
+                <td className="text-xs">{r.status}{r.current ? '' : ' · versión anterior'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
 export default function ArticleDetail() {
   const { id = '' } = useParams()
   const { meta, presenter } = useApp()
@@ -171,6 +218,7 @@ export default function ArticleDetail() {
           </div>
         </Card>
       ) : (
+        <>
         <Card aria-labelledby="eval-h">
           <CardHeader id="eval-h" title="Evaluación por proveedor"
             subtitle={`Estado del evento: ${an.event_state ? IMPACT_LABEL[an.event_state as keyof typeof IMPACT_LABEL] ?? an.event_state : '—'} · confianza tipo ${an.event_type_confidence != null ? fmtNum(an.event_type_confidence, 2) : '—'}`} />
@@ -193,6 +241,8 @@ export default function ArticleDetail() {
             </p>
           </div>
         </Card>
+        <RunHistory articleId={a.id} />
+        </>
       )}
     </div>
   )

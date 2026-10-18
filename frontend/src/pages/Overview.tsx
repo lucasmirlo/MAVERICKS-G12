@@ -3,6 +3,7 @@ import { AlertOctagon, ArrowRight, Building2, FileSpreadsheet, Newspaper, Rss, S
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ArticleItem } from '../components/ArticleItem'
+import { AttentionDesk } from '../components/AttentionDesk'
 import { BatchPanel } from '../components/BatchPanel'
 import { SupplierCards, SupplierTable } from '../components/SupplierRanking'
 import { Card, CardHeader, EmptyState, ErrorState, Kpi, Loading, Notice } from '../components/ui'
@@ -35,6 +36,13 @@ export function EngineNotice() {
       <Notice tone="review" title="Motor sin configurar">
         No se pueden analizar noticias nuevas; nunca se muestran como «sin riesgo».{' '}
         {presenter && meta.engine.missing_variable ? `Define ${meta.engine.missing_variable} en el servidor.` : 'El presentador debe configurar la clave del motor.'}
+      </Notice>
+    )
+  }
+  if (meta.worker.alive && meta.worker.compatible === false && meta.worker.revision) {
+    return (
+      <Notice tone="review" title="Web y worker con versiones distintas">
+        La web ejecuta la revisión {meta.worker.web_revision} y el worker la {meta.worker.revision}: un despliegue quedó a medias. Reinicia o redespliega el worker.
       </Notice>
     )
   }
@@ -106,6 +114,14 @@ export default function Overview() {
             detail="Archivos del ejercicio con todas sus filas analizadas" />
         )}
       </div>
+
+      <Card aria-labelledby="desk-h" className="overflow-hidden">
+        <div className="gradient-bar h-1" aria-hidden />
+        <CardHeader id="desk-h" title="Mesa de atención · de la señal a la siguiente acción"
+          subtitle="Incidentes activos por urgencia y prioridad, con la próxima acción de su plan (reglas explícitas y cifras de la base de datos)."
+          action={<Link to="/alertas" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent-strong">Alertas <ArrowRight className="size-4" aria-hidden /></Link>} />
+        <AttentionDesk items={d.attention} />
+      </Card>
 
       {contextId === 'exercise' && activeBatches.length > 0 && (
         <Card aria-labelledby="batch-h">

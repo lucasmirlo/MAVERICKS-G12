@@ -89,7 +89,8 @@ def one_run(batch_id: str, k: int) -> dict:
     llm_pairs = sum(a.get("pending", 0) for a in adj)
     print(f"Ejecución {k}: {elapsed:.1f} s (JEV {t_jev:.1f} s) · {len(analysis_ids)}/{len(versions)} filas · "
           f"{llm_pairs} parejas al LLM · bloqueos de exportación {len(status['blockers'])}")
-    return {"run": k, "elapsed_s": round(elapsed, 1), "jev_s": round(t_jev, 1), "llm_pairs": llm_pairs,
+    from app.config import get_settings
+    return {"run": k, "urgency_mode": get_settings().urgency_mode, "elapsed_s": round(elapsed, 1), "jev_s": round(t_jev, 1), "llm_pairs": llm_pairs,
             "llm": adj, "models": model_ids, "policy_version": policy["version"], "question_version": QUESTION_VERSION,
             "blockers": status["blockers"],
             "rows": [{"news_id": r["news_id"], "is_risk": r["is_risk"], "urgent": r["urgent"], "affected": sorted(r["affected"] or []),

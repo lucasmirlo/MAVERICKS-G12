@@ -3,8 +3,11 @@ import clsx from 'clsx'
 import {
   Bell,
   BellRing,
+  Boxes,
   Building2,
+  Cpu,
   FileSpreadsheet,
+  FileText,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -31,9 +34,12 @@ import { Button } from './ui'
 const NAV = [
   { to: '/', label: 'Resumen', icon: LayoutDashboard, end: true },
   { to: '/proveedores', label: 'Proveedores', icon: Building2 },
+  { to: '/materiales', label: 'Materiales', icon: Boxes },
   { to: '/noticias', label: 'Noticias', icon: Newspaper },
   { to: '/alertas', label: 'Alertas', icon: Bell },
   { to: '/fuentes', label: 'Fuentes', icon: Rss },
+  { to: '/borradores', label: 'Borradores', icon: FileText },
+  { to: '/modelo', label: 'Modelo', icon: Cpu },
 ]
 
 function Logo({ compact }: { compact?: boolean }) {
@@ -324,7 +330,10 @@ function MobileMore({ open, onOpenChange }: { open: boolean; onOpenChange: (o: b
   const { presenter } = useApp()
   const items = [
     { to: '/proveedores', label: 'Proveedores', icon: Building2 },
-    { to: '/fuentes', label: 'Fuentes RSS', icon: Rss },
+    { to: '/materiales', label: 'Materiales', icon: Boxes },
+    { to: '/borradores', label: 'Borradores', icon: FileText },
+    { to: '/fuentes', label: 'Fuentes', icon: Rss },
+    { to: '/modelo', label: 'Modelo', icon: Cpu },
     ...(presenter ? [{ to: '/presentador', label: 'Panel de presentador', icon: Settings2 }] : []),
   ]
   return (
