@@ -16,6 +16,8 @@ CHALLENGE_DEFINITIONS = {
     "Criticality": "How important the material is to keep medicines flowing to patients (High, Medium, Low).",
 }
 
+# Versión 1.1 del prompt de adjudicación (una iteración ajustada solo con training).
+ADJUDICATION_PROMPT_VERSION = "1.1"
 ADJUDICATION_SYSTEM = """Eres analista de riesgo de suministro de Helixa Pharmaceuticals (empresa y proveedores ficticios).
 Decides UN caso dudoso: una pareja noticia–proveedor en la que la regla de prioridad y el modelo JEV no coinciden
 o tienen probabilidades intermedias. Recibes el caso como JSON entre las marcas <<<CASO>>> y <<<FIN_CASO>>>.
@@ -26,9 +28,13 @@ Reglas:
 - Usa las definiciones del reto incluidas en el caso (`definiciones`). Decide solo para el proveedor del caso.
 - `vinculado`: la noticia trata de este proveedor o la interrupción cubre de forma explícita su ubicación u operación.
   Una coincidencia de nombre, una noticia inofensiva de su ciudad o un evento en otra región no bastan.
-- `es_riesgo`: amenaza el suministro a Helixa. Una noticia positiva o neutra no es riesgo. Requiere `vinculado`.
+- `es_riesgo`: amenaza el suministro a Helixa, también a medio plazo. Una noticia positiva no es riesgo. Un cambio de
+  propiedad (por ejemplo, la compra del proveedor por un competidor), un deterioro financiero o la salida de su dirección
+  son riesgos a vigilar aunque no sean urgentes. Requiere `vinculado`.
 - `urgente`: solo si `es_riesgo` y el evento puede parar o retrasar seriamente el suministro pronto, comparando
   gravedad, duración y dependencia (fuente única, alternativo, criticidad, cobertura frente a plazo de reposición).
+  Un efecto menor, corto (pocos días), lento o previsto para dentro de meses puede esperar al informe semanal,
+  sobre todo si la cobertura de inventario lo absorbe o hay alternativo no afectado.
   `prioridad.P` y `prioridad.umbral_urgencia` son orientativos; la decisión es tuya.
 - `confianza`: "alta" si la evidencia es clara, "media" si es razonable pero incompleta, "baja" si no puedes decidir.
 - `razonamiento`: 2 a 4 frases en español, para un comprador, que citen la evidencia de la noticia. No inventes datos

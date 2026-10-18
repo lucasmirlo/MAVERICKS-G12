@@ -75,8 +75,9 @@ def _text_cell(ws, row, col, value):
     return cell
 
 
-def build_xlsx(db: Session, batch: ImportBatch) -> bytes:
-    rows = batch_rows(db, batch)
+def build_xlsx(db: Session, batch: ImportBatch, rows: list[dict] | None = None, extra_info: list[tuple] | None = None) -> bytes:
+    """rows: por defecto las decisiones vigentes; scripts/export_consensus.py pasa las votadas por mayoría."""
+    rows = rows if rows is not None else batch_rows(db, batch)
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Resultados"
@@ -111,7 +112,7 @@ def build_xlsx(db: Session, batch: ImportBatch) -> bytes:
             _text_cell(copy, r, c, v)
 
     report = wb.create_sheet("Informe")
-    analyses = [db.get(Analysis, r["analysis_id"]) for r in rows if r["analysis_id"]]
+    analyses = [an for an in (db.get(Analysis, r["analysis_id"]) for r in rows if r.get("analysis_id")) if an is not None]
     info = [
         ("Lote", batch.id), ("Archivo", batch.file_name), ("Hoja", batch.sheet_name), ("SHA-256", batch.file_sha256),
         ("Generado (UTC)", utcnow().astimezone(timezone.utc).isoformat()),
@@ -121,7 +122,9 @@ def build_xlsx(db: Session, batch: ImportBatch) -> bytes:
         ("Filas", len(rows)), ("Con revisión pendiente", sum(1 for r in rows if r["review_reasons"])),
         ("Decisión manual", sum(1 for r in rows if r["manual"])), ("Resultados en caché", sum(1 for r in rows if r["cached"])),
         ("Nota", "Prioridad 0–100 = orden de atención, no probabilidad. Revisiones pendientes exportan su mejor decisión binaria."),
+        *(extra_info or []),
     ]
+    info = [(k, v) for k, v in info if v not in (None, "")]
     for r, (k, v) in enumerate(info, 1):
         _text_cell(report, r, 1, k).font = Font(bold=True)
         _text_cell(report, r, 2, v)

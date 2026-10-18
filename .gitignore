@@ -8,7 +8,7 @@ node_modules/
 frontend/dist/
 static/
 .pytest_cache/
-evaluation/runs/
+# evaluation/runs/ se versiona en sprint2-local (informes y exportación del Test)
 *.log
 
 # Bloqueos de LibreOffice

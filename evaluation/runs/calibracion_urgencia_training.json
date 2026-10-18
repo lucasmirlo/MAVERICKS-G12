@@ -1,0 +1,743 @@
+{
+  "batch": "e8316384-ab2d-49c9-8c88-c8ca3cc9a06f",
+  "chosen": 50.0,
+  "best_f1": 0.9090909090909091,
+  "tied": [
+    47.5,
+    50.0,
+    52.5
+  ],
+  "table": [
+    {
+      "threshold": 30.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 5.899999999999999
+    },
+    {
+      "threshold": 32.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 3.3999999999999986
+    },
+    {
+      "threshold": 35.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 6,
+          "fn": 0,
+          "tn": 19
+        },
+        "precision": 0.45454545454545453,
+        "recall": 1.0,
+        "f1": 0.625
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 0.8999999999999986
+    },
+    {
+      "threshold": 37.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 5,
+          "fn": 0,
+          "tn": 20
+        },
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 5,
+          "fn": 0,
+          "tn": 20
+        },
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 1.6000000000000014
+    },
+    {
+      "threshold": 40.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 5,
+          "fn": 0,
+          "tn": 20
+        },
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 5,
+          "fn": 0,
+          "tn": 20
+        },
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 0.5
+    },
+    {
+      "threshold": 42.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 3,
+          "fn": 0,
+          "tn": 22
+        },
+        "precision": 0.625,
+        "recall": 1.0,
+        "f1": 0.7692307692307693
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 3,
+          "fn": 0,
+          "tn": 22
+        },
+        "precision": 0.625,
+        "recall": 1.0,
+        "f1": 0.7692307692307693
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 0.3999999999999986
+    },
+    {
+      "threshold": 45.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 2,
+          "fn": 0,
+          "tn": 23
+        },
+        "precision": 0.7142857142857143,
+        "recall": 1.0,
+        "f1": 0.8333333333333333
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 2,
+          "fn": 0,
+          "tn": 23
+        },
+        "precision": 0.7142857142857143,
+        "recall": 1.0,
+        "f1": 0.8333333333333333
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 1.7000000000000028
+    },
+    {
+      "threshold": 47.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 0.29999999999999716
+    },
+    {
+      "threshold": 50.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 2.5
+    },
+    {
+      "threshold": 52.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "margin": 0.0
+    },
+    {
+      "threshold": 55.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 3,
+          "fp": 1,
+          "fn": 2,
+          "tn": 24
+        },
+        "precision": 0.75,
+        "recall": 0.6,
+        "f1": 0.6666666666666665
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 2,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.6,
+        "f1": 0.7499999999999999
+      },
+      "margin": 1.1000000000000014
+    },
+    {
+      "threshold": 57.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 3,
+          "fp": 1,
+          "fn": 2,
+          "tn": 24
+        },
+        "precision": 0.75,
+        "recall": 0.6,
+        "f1": 0.6666666666666665
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "tn": 24
+        },
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 2,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.6,
+        "f1": 0.7499999999999999
+      },
+      "margin": 0.3999999999999986
+    },
+    {
+      "threshold": 60.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "margin": 1.7000000000000028
+    },
+    {
+      "threshold": 62.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "margin": 4.200000000000003
+    },
+    {
+      "threshold": 65.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "margin": 4.5
+    },
+    {
+      "threshold": 67.5,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285715
+      },
+      "margin": 2.0
+    },
+    {
+      "threshold": 70.0,
+      "rule": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 4,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.2,
+        "f1": 0.33333333333333337
+      },
+      "rule_or_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rule_and_jev": {
+        "n": 30,
+        "positives_labelled": 5,
+        "confusion": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 4,
+          "tn": 25
+        },
+        "precision": 1.0,
+        "recall": 0.2,
+        "f1": 0.33333333333333337
+      },
+      "margin": 0.5
+    }
+  ]
+}

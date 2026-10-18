@@ -20,7 +20,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-def main(base: str, manifest_path: str, limit: float = 300.0) -> int:
+def main(base: str, manifest_path: str, limit: float = 300.0, force: bool = False) -> int:
     base = base.rstrip("/")
     password = os.environ.get("ADMIN_PASSWORD")
     if not password:
@@ -36,7 +36,7 @@ def main(base: str, manifest_path: str, limit: float = 300.0) -> int:
         bid = batch["batch_id"]
         print(f"Lote {bid} ({batch['sheet']}, {batch['rows']} filas, {batch['status']})")
         t0 = time.monotonic()
-        a = c.post(f"{base}/api/batches/{bid}/analyze", json={"retry_errors": True}, headers=h)
+        a = c.post(f"{base}/api/batches/{bid}/analyze", json={"retry_errors": True, "force": force}, headers=h)
         a.raise_for_status()
         print(f"Encolado: {a.json()['created']} nuevos, {a.json()['requeued']} reintentos")
         while True:
@@ -72,7 +72,8 @@ def main(base: str, manifest_path: str, limit: float = 300.0) -> int:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    args = [a for a in sys.argv[1:] if a != "--force"]
+    if len(args) != 2:
         print(__doc__)
         sys.exit(2)
-    sys.exit(main(sys.argv[1], sys.argv[2]))
+    sys.exit(main(args[0], args[1], force="--force" in sys.argv))

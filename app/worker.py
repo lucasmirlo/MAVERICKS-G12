@@ -50,7 +50,7 @@ def handle(job: Job, worker_id: str) -> None:
                 if needs_adjudication(analysis):
                     # Los resultados de JEV ya están publicados; las parejas dudosas quedan «en análisis».
                     jobqueue.enqueue(db, "adjudicate_article", {"analysis_id": analysis.id, "version_id": version_id},
-                                     priority=job.priority, idempotency_key=f"adjudicate:{analysis.id}", batch_id=job.batch_id,
+                                     priority=job.priority, idempotency_key=f"adjudicate:{analysis.id}:{analysis.finished_at.timestamp():.3f}", batch_id=job.batch_id,
                                      max_attempts=1)
                     db.commit()
                 jobqueue.complete(db, job.id, worker_id)

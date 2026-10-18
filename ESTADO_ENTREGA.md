@@ -81,3 +81,54 @@ Informes JSON en `evaluation/runs/`. Validación con 10 noticias y 2 urgentes: n
 5. Supervisar coste y cupo de JEV en la cuenta TypeSafe (no hay precios en el motor). Cupo RSS: 100 análisis/día UTC.
 6. El código no está en un repositorio git; conviene versionarlo antes de seguir iterando.
 7. Bundle principal de 796 kB (241 kB gzip) por la librería de gráficos.
+
+## Versión 2 (local) · sprint 2
+
+Rama `sprint2-local`. **Solo local:** Railway sigue en la versión 1 (solo JEV), sin `railway up` ni cambios de variables. Fecha: 18 de octubre de 2026.
+
+| Elemento | Valor |
+| --- | --- |
+| Arranque | `powershell -ExecutionPolicy Bypass -File scripts/dev.ps1` (PostgreSQL en `.pgdata`, migraciones, frontend, worker y web) |
+| Esquema | Alembic `0005` (decisión por pareja `0004`, planes de acción `0005`) |
+| Política | `1.1.0`: urgencia por prioridad, `thresholds.urgent_priority = 50`, U = 1 también si el alternativo está afectado, `action_rules` 1.0.0 |
+| JEV | `jev-1.13.0`, preguntas `1.2.0` (sin cambios) |
+| LLM | Ollama 0.40.4 en Windows, `qwen3.5:9b` en RTX 4060 de 8 GB (`ollama ps`: 100% GPU), API compatible con OpenAI, `reasoning_effort=none`, `max_tokens` 800, `LLM_MAX_CONCURRENCY=2`. Prompt de adjudicación 1.1 |
+
+### Umbral de urgencia elegido (solo training, sin llamar a JEV)
+
+`scripts/calibrate_urgency.py` recalcula P de las 30 noticias de training y lo cruza con sus 5 urgentes etiquetadas. F1 de la regla por umbral: 30–35 → 0,62; 37,5–40 → 0,67; 42,5 → 0,77; 45 → 0,83; **47,5 / 50 / 52,5 → 0,91**; 55–57,5 → 0,67; 60–67,5 → 0,57; 70 → 0,33. Empate entre 47,5, 50 y 52,5; se eligió **50** por dejar más margen (2,5 puntos) al P más cercano. En 50: solo regla VP 5, FP 1, FN 0, VN 24; regla ∨ JEV F1 0,91; regla ∧ JEV F1 1,00. Única noticia mal clasificada por la regla: N046 (P 58,3, p_urgent 0,45), que al discrepar con JEV pasa al LLM. Informe: `evaluation/runs/calibracion_urgencia_training.json`.
+
+### Métricas con denominadores
+
+| Lote | Versión | Is_Risk | Urgent | Proveedores |
+| --- | --- | --- | --- | --- |
+| Training (n = 30; 14 riesgos, 5 urgentes) | v1 (JEV) | VP 13 · FP 0 · FN 1 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 · precisión ID 0,73 · recobrado 1,00 |
+| Training | **v2 final** | VP 12 · FP 0 · FN 2 · VN 16 (P 1,00 · R 0,86) | VP 5 · FP 0 · FN 0 · VN 25 (P = R = 1,00) | exacto 28/30 · precisión ID 0,73 · recobrado 1,00 |
+| Validación (n = 10; 5 riesgos, 2 urgentes) | v1 (local / Railway) | 4/5 y 5/5 aciertos, 0 FP | VP 1 · FP 1 · FN 1 · VN 7 | exacto 10/10 |
+| Validación · **tercer uso** | **v2 final** | VP 5 · FP 0 · FN 0 · VN 5 (P = R = 1,00) | VP 1 · FP 2 · FN 1 · VN 6 (P 0,33 · R 0,50 · F1 0,40) | exacto 9/10 · precisión ID 1,00 · recobrado 0,90 |
+
+Training se usó para ajustar (umbral y una iteración del prompt de adjudicación), así que sus cifras son optimistas. La validación se ejecutó una sola vez con la configuración congelada y sus fallos no se han inspeccionado. En urgencia, la versión 2 queda **por debajo** de la versión 1 en validación (F1 0,40 frente a 0,50), con solo 2 urgentes etiquetadas: no hay base para afirmar mejora. Fuente de decisión de las parejas (aceptadas o dudosas): training regla+JEV 15, IA 15; validación regla+JEV 7, IA 4. Ninguna sin segunda opinión ni de baja confianza.
+
+### Tiempos medidos en local (JEV real + Ollama)
+
+| Lote | Tiempo clic → XLSX | Parejas al LLM | Latencia media del modelo |
+| --- | --- | --- | --- |
+| Test, 20 noticias (objetivo ≤ 180 s) | **55,8 s** | 7 | 12,2 s |
+| 14 noticias (objetivo ≤ 120 s) | **41,1 s** | 5 | 12,2 s |
+| Training, 30 noticias (JEV en caché) | 103,0 s | 15 | 11,1 s |
+| Consenso de Test, 3 ejecuciones sin caché | 64,1 · 60,8 · 50,6 s | 8 · 8 · 7 | — |
+
+Ollama atiende las peticiones en serie en esta GPU: con 2 en paralelo, la latencia por llamada incluye la espera de la otra (unos 6–8 s de cálculo propio, unos 1.150 tokens de entrada y 220 de salida).
+
+### Exportación del Test
+
+`scripts/export_consensus.py --split test`: 3 ejecuciones completas (JEV sin caché + regla + LLM), voto por mayoría de Is_Risk, Urgent y cada ID. **18 de 20 filas unánimes**; N003 (urgencia 1-2) y N016 (riesgo 1-2) por mayoría. Resultado: 8 riesgos y 4 urgentes. Archivo: `evaluation/runs/supplier_risk_radar_News_Test_consenso_20261018_2217.xlsx`; ejecuciones y votación en los JSON con el mismo sello. Test no se usó para ajustar nada.
+
+### Pendientes de la versión 2
+
+1. El servidor de Ollama de este equipo corre con contexto 4096 (no se arrancó con `OLLAMA_CONTEXT_LENGTH=8192`); los prompts actuales caben (unos 1.150 tokens), pero conviene arrancarlo como indica el README.
+2. La IA no considera riesgo la adquisición de un proveedor por un competidor ni la salida de su CEO (N018, N025 en training) pese al ajuste del prompt.
+3. Urgencia en validación peor que la versión 1 con una muestra de 2 urgentes: revisar con más datos etiquetados antes de sustituir la versión 1 en Railway.
+4. LiveDay y Test quedaron analizados en la base local por las mediciones; antes de una demo local se pueden limpiar con `scripts/purge_batch.py` y reimportar.
+5. OpenAI y Anthropic: interfaz preparada (`app/llm/providers.py`), sin implementar.
+6. Audio y móvil físico: sin ensayo en dispositivo real en esta versión.

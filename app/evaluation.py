@@ -53,6 +53,19 @@ def evaluate_batch(db: Session, batch: ImportBatch) -> dict:
                             "ids_missing": sorted(gold - pred), "ids_extra": sorted(pred - gold),
                             "review": r["review_reasons"]})
     ids_with_suppliers = [r for r in evaluated if labels[r["news_id"]].affected_supplier_ids]
+    # Desglose de quién decidió cada pareja (aceptada o dudosa) en los análisis evaluados.
+    from .models import Analysis
+    sources: dict[str, int] = {}
+    llm_stats = {"doubtful_pairs": 0, "decided": 0, "low_confidence": 0, "no_second_opinion": 0}
+    for r in evaluated:
+        an = db.get(Analysis, r["analysis_id"]) if r["analysis_id"] else None
+        for a in (an.assessments if an else []):
+            if a.accepted or a.doubtful:
+                sources[a.decision_source or "-"] = sources.get(a.decision_source or "-", 0) + 1
+            if a.doubtful:
+                llm_stats["doubtful_pairs"] += 1
+                key = {"hecha": "decided", "baja_confianza": "low_confidence"}.get(a.llm_status, "no_second_opinion")
+                llm_stats[key] += 1
     return {
         "batch_id": batch.id, "split": batch.split, "sheet": batch.sheet_name, "created_at": utcnow().isoformat(),
         "articles_total": len(rows), "articles_evaluated": len(evaluated), "excluded": excluded,
@@ -66,6 +79,7 @@ def evaluate_batch(db: Session, batch: ImportBatch) -> dict:
             "id_counts": {"tp": tp_ids, "fp": fp_ids, "fn": fn_ids},
         },
         "per_article": per_article,
+        "decision_sources_pairs": sources, "llm": llm_stats,
         "caveat": "Muestra pequeña; no indica validez general para una operación real.",
     }
 
