@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "status": "initial_policy_not_empirically_calibrated",
+  "version": "1.1.0",
+  "status": "initial_policy_urgency_threshold_calibrated_on_training_only",
   "default_model": "jev-1.13.0",
   "question_version": "1.0.0",
   "weights": {
@@ -23,7 +23,8 @@
     "review_low": 0.35,
     "review_high": 0.65,
     "choice_score_confidence": 0.6,
-    "audible_probability": 0.8
+    "audible_probability": 0.8,
+    "urgent_priority": 50.0
   },
   "bands": [
     {
@@ -99,5 +100,22 @@
     "positive": "A favourable development without a current threat.",
     "unrelated": "No relevant operational event or connection.",
     "unclear": "Evidence is insufficient or conflicting."
+  },
+  "urgency_rule": "is_risk and impact_status == 'active' and P >= thresholds.urgent_priority; JEV p_urgent >= thresholds.urgent is second opinion",
+  "dependency_rule": "U = 1 if Single_Source = Y or the approved alternate is affected by the same article",
+  "action_rules": {
+    "version": "1.0.0",
+    "prolonged_event_days": 30,
+    "safety_stock_duration_fraction_of_cover": 0.5,
+    "deadline_this_week_cover_days": 30,
+    "catalog": [
+      "monitor",
+      "contact_supplier",
+      "shift_to_alternate",
+      "increase_safety_stock",
+      "start_dual_sourcing",
+      "reroute_logistics",
+      "escalate_planning"
+    ]
   }
 }

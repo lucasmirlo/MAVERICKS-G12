@@ -252,6 +252,17 @@ class SupplierAssessment(Base):
     sound_eligible: Mapped[bool] = mapped_column(Boolean, default=False)
     is_recovery: Mapped[bool] = mapped_column(Boolean, default=False)
     link_basis: Mapped[str] = mapped_column(String(24), default="identity", server_default="identity")
+    # Sprint 2: urgencia por P, segunda opinión de JEV y adjudicación del LLM en casos dudosos.
+    severity_jev: Mapped[Optional[float]] = mapped_column(Float)  # severidad de JEV aunque la pareja no sea riesgo
+    alternate_affected: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    urgent_rule: Mapped[Optional[bool]] = mapped_column(Boolean)
+    jev_urgent: Mapped[Optional[bool]] = mapped_column(Boolean)
+    doubtful: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    doubt_reasons: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")
+    decision_source: Mapped[Optional[str]] = mapped_column(String(16))  # regla | regla+jev | llm | humano
+    llm_status: Mapped[Optional[str]] = mapped_column(String(24))  # no_necesaria | pendiente | hecha | baja_confianza | sin_segunda_opinion
+    llm_decision: Mapped[Optional[dict]] = mapped_column(JSONB)
+    manual_decision: Mapped[Optional[dict]] = mapped_column(JSONB)
     policy_version: Mapped[str] = mapped_column(String(32))
     incident_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
     analysis: Mapped[Analysis] = relationship(back_populates="assessments")

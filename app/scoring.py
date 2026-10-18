@@ -42,15 +42,18 @@ def inventory_applicability(policy: dict, category: str | None) -> str:
 
 def priority(policy: dict, *, is_risk, severity, criticality, single_source, share_category_pct,
              inventory_days=None, lead_days=None, disruption_days=None,
-             inventory_applicability="physical", active=True):
+             inventory_applicability="physical", active=True, alternate_affected=False):
     """Prioridad de una pareja evento–proveedor.
+
+    U (dependencia) vale 1 si el proveedor es fuente única o si su alternativo aprobado también está
+    afectado por la misma noticia (política ≥ 1.1.0): en ambos casos no hay salida inmediata.
 
     Inventario físico ausente es revisión, nunca cero días. Para servicios/logística B se omite y
     los pesos se renormalizan. Con active=False la prioridad activa es 0 (el histórico se calcula
     llamando con active=True).
     """
-    if not isinstance(is_risk, bool) or not isinstance(active, bool):
-        raise ValueError("is_risk and active must be booleans")
+    if not isinstance(is_risk, bool) or not isinstance(active, bool) or not isinstance(alternate_affected, bool):
+        raise ValueError("is_risk, active and alternate_affected must be booleans")
     if inventory_applicability not in {"physical", "not_applicable", "unknown"}:
         raise ValueError("invalid inventory applicability")
     if criticality is not None and criticality not in policy["criticality"]:
@@ -71,7 +74,9 @@ def priority(policy: dict, *, is_risk, severity, criticality, single_source, sha
     else:
         warnings.append("criticality_missing")
     if single_source is not None:
-        factors["U"] = 1.0 if single_source == "Y" else 0.0
+        factors["U"] = 1.0 if (single_source == "Y" or alternate_affected) else 0.0
+    elif alternate_affected:
+        factors["U"] = 1.0
     else:
         warnings.append("single_source_missing")
     if share is not None:
@@ -116,8 +121,17 @@ def priority(policy: dict, *, is_risk, severity, criticality, single_source, sha
         "contributions": contributions,
         "warnings": warnings,
         "needs_review": bool(warnings),
+        "alternate_affected": alternate_affected,
         "policy_version": policy["version"],
     }
+
+
+def urgency_rule(policy: dict, *, is_risk: bool, impact_status: str, priority) -> bool:
+    """Urgencia por prioridad: riesgo activo con P ≥ thresholds.urgent_priority (política ≥ 1.1.0)."""
+    threshold = policy["thresholds"].get("urgent_priority")
+    if threshold is None or priority is None:
+        return False
+    return bool(is_risk and impact_status == "active" and priority >= threshold)
 
 
 def decisions(policy: dict, *, p_link, p_risk, p_urgent, impact_status="active", needs_review=False):

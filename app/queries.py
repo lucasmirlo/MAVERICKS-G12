@@ -222,7 +222,9 @@ def assessment_dict(a: SupplierAssessment, evidence: list[dict]) -> dict:
             "review_reasons": a.review_reasons, "evidence": [by_id[e] for e in a.evidence_ids if e in by_id],
             "duration_days": a.duration_days, "duration_is_lower_bound": a.duration_is_lower_bound,
             "sound_eligible": a.sound_eligible, "is_recovery": a.is_recovery, "policy_version": a.policy_version,
-            "link_basis": a.link_basis,
+            "link_basis": a.link_basis, "decision_source": a.decision_source, "urgent_rule": a.urgent_rule,
+            "jev_urgent": a.jev_urgent, "doubtful": a.doubtful, "doubt_reasons": a.doubt_reasons or [],
+            "llm_status": a.llm_status, "llm_decision": a.llm_decision, "alternate_affected": a.alternate_affected,
             "incident_id": a.incident_id}
 
 

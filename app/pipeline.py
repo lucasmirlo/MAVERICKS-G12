@@ -13,7 +13,7 @@ from datetime import timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import scoring
+from . import decision, scoring
 from .config import get_settings, location_enrichment
 from .db import utcnow
 from .jev import fixture
@@ -25,6 +25,15 @@ from .policy import active_policy
 from .textutil import duration_candidates, sentences
 
 log = logging.getLogger("srr.pipeline")
+
+
+def llm_available() -> bool:
+    """Hay segunda opinión del LLM si el proveedor está configurado y respondió en la última comprobación."""
+    try:
+        from .llm import is_available
+    except ImportError:  # etapa anterior al cliente LLM
+        return False
+    return is_available()
 
 
 def engine_mode() -> str:
@@ -194,23 +203,16 @@ def analyze_version(db: Session, version_id: str, *, client: JevClient | None = 
     span_ids = {s["id"] for s in spans}
     dur_by_id = {d["id"]: d for d in durations}
     for sid in candidates:
-        assessment = build_assessment(policy, by_id[sid], answers_b, link_scores[sid], event_type, span_ids, dur_by_id,
+        assessment = build_assessment(policy, by_id[sid], answers_b, link_scores[sid], span_ids, dur_by_id,
                                       link_basis=link_basis(by_id[sid], art))
         assessment.article_id = article.id
         assessment.context_id = article.context_id
         analysis.assessments.append(assessment)
-
-    accepted = [a for a in analysis.assessments if a.accepted]
-    analysis.affected_supplier_ids = sorted({a.supplier_id for a in accepted})
-    analysis.is_risk = "Y" if any(a.is_risk == "Y" for a in accepted) else "N"
-    analysis.urgent = "Y" if any(a.is_risk == "Y" and a.urgent == "Y" for a in accepted) else "N"
+    llm_on = llm_available()
     for a in analysis.assessments:
-        for reason in a.review_reasons:
-            tag = f"{a.supplier_id}:{reason}"
-            if tag not in review_reasons:
-                review_reasons.append(tag)
-    analysis.status = "review" if review_reasons else "done"
-    analysis.review_reasons = review_reasons
+        a.llm_status = None  # decision.evaluate_article lo fija; los dudosos quedan pendientes o sin segunda opinión
+    apply_decisions(policy, analysis, by_id, event_type, article_reasons=review_reasons,
+                    default_llm_status="pendiente" if llm_on else "sin_segunda_opinion")
     analysis.event_type = event_type
     analysis.event_type_confidence = event_type_conf
     analysis.event_state = event_state
@@ -275,66 +277,61 @@ def link_basis(s: Supplier, art: dict) -> str:
     return "inferred_region"
 
 
-def build_assessment(policy: dict, s: Supplier, answers: dict, p_link: float, event_type: str,
-                     span_ids: set[str], durations: dict[str, dict], link_basis: str = "identity") -> SupplierAssessment:
+def build_assessment(policy: dict, s: Supplier, answers: dict, p_link: float, span_ids: set[str],
+                     durations: dict[str, dict], link_basis: str = "identity") -> SupplierAssessment:
+    """Guarda las respuestas de JEV de la pareja; la decisión la calcula apply_decisions."""
     sid = s.supplier_id
-    t = policy["thresholds"]
-    p_risk = answers[f"risk_{sid}"]["noul"]
-    p_urgent = answers[f"urgent_{sid}"]["noul"]
     sev = answers[f"severity_{sid}"]
     impact = answers[f"impact_state_{sid}"]
     evidence = answers[f"evidence_{sid}"]["choice"]
-    duration_choice = answers[f"duration_{sid}"]["choice"]
-    severity = round(1 + sev["score"], 4)
-    impact_status = impact["choice"]
-    reasons: list[str] = []
-    dec = scoring.decisions(policy, p_link=p_link, p_risk=p_risk, p_urgent=p_urgent, impact_status=impact_status)
-    reasons += dec["review_reasons"]
-    accepted = dec["linked"]
-    is_risk = dec["is_risk"] == "Y"
-    if accepted and impact["confidence"] is not None and impact["confidence"] < t["choice_score_confidence"]:
-        reasons.append("low_impact_state_confidence")
-    if is_risk and sev["confidence"] is not None and sev["confidence"] < t["choice_score_confidence"]:
-        reasons.append("low_severity_confidence")
-    evidence_ids = [evidence] if evidence in span_ids else []
-    if is_risk and not evidence_ids:
-        reasons.append("no_evidence")
-    duration = durations.get(duration_choice)
-    disruption_days = duration["days"] if duration else None
-    applicability = scoring.inventory_applicability(policy, s.category)
-    result = None
-    try:
-        result = scoring.priority(policy, is_risk=is_risk, severity=severity if is_risk else None,
-                                  criticality=s.criticality, single_source=s.single_source,
-                                  share_category_pct=s.share_category_pct, inventory_days=s.inventory_days,
-                                  lead_days=s.lead_days, disruption_days=disruption_days,
-                                  inventory_applicability=applicability, active=True)
-    except ValueError as exc:
-        reasons.append("invalid_supplier_data")
-        log.warning("invalid supplier data %s: %s", sid, exc)
-    if s.data_issues and accepted:
-        reasons.append("supplier_data_issue")
-    if result and is_risk:
-        reasons += [w for w in result["warnings"]]
-        if result["priority"] is None:
-            reasons.append("priority_unavailable")
-    reasons = list(dict.fromkeys(reasons))
-    needs_review = bool(reasons)
-    hist = result["priority"] if result else None
-    active_priority = 0.0 if impact_status == "resolved" else hist
-    is_recovery = accepted and (impact_status == "resolved" or event_type == "recovery")
+    duration = durations.get(answers[f"duration_{sid}"]["choice"])
     return SupplierAssessment(
-        supplier_id=sid, accepted=accepted, p_link=p_link, p_risk=p_risk, p_urgent=p_urgent,
-        is_risk=dec["is_risk"], urgent=dec["urgent"], severity=severity if is_risk else None,
-        severity_confidence=sev["confidence"], impact_status=impact_status, impact_confidence=impact["confidence"],
-        priority=hist, active_priority=active_priority,
-        priority_band=scoring.band(policy, active_priority) if active_priority is not None else None,
-        exposure=result["exposure"] if result else None,
-        factor_values=result["factors"] if result else {}, contributions=result["contributions"] if result else {},
-        needs_review=needs_review, review_reasons=reasons, evidence_ids=evidence_ids,
-        duration_days=disruption_days, duration_is_lower_bound=bool(duration and duration.get("is_lower_bound")),
-        # Un vínculo solo inferido por región/ruta se muestra como tal y no habilita sonido automático.
-        sound_eligible=bool(dec["sound_eligible"] and not needs_review and link_basis != "inferred_region"), is_recovery=is_recovery,
-        link_basis=link_basis,
-        policy_version=policy["version"],
+        supplier_id=sid, accepted=False, p_link=p_link, p_risk=answers[f"risk_{sid}"]["noul"],
+        p_urgent=answers[f"urgent_{sid}"]["noul"], is_risk="N", urgent="N",
+        severity_jev=round(1 + sev["score"], 4), severity_confidence=sev["confidence"],
+        impact_status=impact["choice"], impact_confidence=impact["confidence"],
+        evidence_ids=[evidence] if evidence in span_ids else [],
+        duration_days=duration["days"] if duration else None,
+        duration_is_lower_bound=bool(duration and duration.get("is_lower_bound")),
+        link_basis=link_basis, policy_version=policy["version"],
     )
+
+
+def pair_input(a: SupplierAssessment) -> dict:
+    return {"supplier_id": a.supplier_id, "p_link": a.p_link, "p_risk": a.p_risk, "p_urgent": a.p_urgent,
+            "severity_jev": a.severity_jev if a.severity_jev is not None else a.severity,
+            "severity_confidence": a.severity_confidence, "impact_status": a.impact_status,
+            "impact_confidence": a.impact_confidence, "has_evidence": bool(a.evidence_ids),
+            "duration_days": a.duration_days, "link_basis": a.link_basis, "llm": a.llm_decision,
+            "llm_status": a.llm_status, "manual": a.manual_decision}
+
+
+ARTICLE_LEVEL = ("low_event_type_confidence", "unexpected_model_version")
+
+
+def apply_decisions(policy: dict, analysis: Analysis, by_id: dict[str, Supplier], event_type: str | None, *,
+                    article_reasons: list[str] | None = None, default_llm_status: str | None = None) -> None:
+    """Aplica decision.evaluate_article a las parejas del análisis y recalcula los campos del artículo."""
+    pairs = [pair_input(a) for a in analysis.assessments]
+    if default_llm_status:
+        for p in pairs:
+            p["llm_status"] = p["llm_status"] or default_llm_status
+    results = decision.evaluate_article(policy, pairs, by_id, event_type=event_type)
+    for a, r in zip(analysis.assessments, results):
+        for key in ("accepted", "is_risk", "urgent", "urgent_rule", "jev_urgent", "doubtful", "doubt_reasons", "decision_source",
+                    "llm_status", "severity", "priority", "active_priority", "priority_band", "exposure", "factor_values",
+                    "contributions", "alternate_affected", "review_reasons", "needs_review", "sound_eligible", "is_recovery"):
+            setattr(a, key, r[key])
+        a.policy_version = policy["version"]
+    agg = decision.aggregate(results)
+    analysis.affected_supplier_ids = agg["affected_supplier_ids"]
+    analysis.is_risk = agg["is_risk"]
+    analysis.urgent = agg["urgent"]
+    reasons = list(article_reasons if article_reasons is not None else [r for r in (analysis.review_reasons or []) if r in ARTICLE_LEVEL])
+    for a in analysis.assessments:
+        for reason in a.review_reasons:
+            tag = f"{a.supplier_id}:{reason}"
+            if tag not in reasons:
+                reasons.append(tag)
+    analysis.review_reasons = reasons
+    analysis.status = "review" if reasons else "done"

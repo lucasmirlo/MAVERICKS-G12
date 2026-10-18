@@ -14,10 +14,11 @@ EDITABLE_THRESHOLDS = ("link", "risk", "urgent", "review_low", "review_high", "c
 
 
 def ensure_seeded(db: Session) -> None:
+    """El archivo config/risk_policy.json manda: una versión nueva del archivo se registra y pasa a ser la activa."""
     base = file_policy()
     if db.get(PolicyVersion, base["version"]) is None:
-        has_active = db.scalar(select(PolicyVersion).where(PolicyVersion.active.is_(True)).limit(1))
-        db.add(PolicyVersion(version=base["version"], data=base, active=has_active is None, note="Política inicial del kit"))
+        db.execute(update(PolicyVersion).values(active=False))
+        db.add(PolicyVersion(version=base["version"], data=base, active=True, note=f"Política del archivo {base['version']}"))
         db.commit()
 
 
