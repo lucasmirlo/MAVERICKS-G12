@@ -80,7 +80,7 @@ export interface SupplierRow {
   dependency_weights: Record<'C' | 'U' | 'B' | 'G', number>
 }
 
-export type DecisionSource = 'regla' | 'regla+jev' | 'llm' | 'humano'
+export type DecisionSource = 'jev' | 'regla' | 'regla+jev' | 'llm' | 'humano'
 export type LlmStatus = 'no_necesaria' | 'pendiente' | 'hecha' | 'baja_confianza' | 'sin_segunda_opinion'
 export interface LlmDecision {
   razonamiento?: string

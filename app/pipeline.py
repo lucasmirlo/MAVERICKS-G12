@@ -209,6 +209,7 @@ def analyze_version(db: Session, version_id: str, *, client: JevClient | None = 
         assessment.context_id = article.context_id
         analysis.assessments.append(assessment)
     llm_on = llm_available()
+    analysis.urgency_mode = settings.urgency_mode
     for a in analysis.assessments:
         a.llm_status = None  # decision.evaluate_article lo fija; los dudosos quedan pendientes o sin segunda opinión
     apply_decisions(policy, analysis, by_id, event_type, article_reasons=review_reasons,
@@ -316,7 +317,8 @@ def apply_decisions(policy: dict, analysis: Analysis, by_id: dict[str, Supplier]
     if default_llm_status:
         for p in pairs:
             p["llm_status"] = p["llm_status"] or default_llm_status
-    results = decision.evaluate_article(policy, pairs, by_id, event_type=event_type)
+    mode = analysis.urgency_mode or get_settings().urgency_mode
+    results = decision.evaluate_article(policy, pairs, by_id, event_type=event_type, mode=mode)
     for a, r in zip(analysis.assessments, results):
         for key in ("accepted", "is_risk", "urgent", "urgent_rule", "jev_urgent", "doubtful", "doubt_reasons", "decision_source",
                     "llm_status", "severity", "priority", "active_priority", "priority_band", "exposure", "factor_values",

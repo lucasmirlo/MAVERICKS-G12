@@ -210,6 +210,7 @@ class Analysis(Base):
     duration_ms: Mapped[Optional[int]] = mapped_column(Integer)
     jev_attempts: Mapped[int] = mapped_column(Integer, default=0)
     manual_decision: Mapped[Optional[dict]] = mapped_column(JSONB)
+    urgency_mode: Mapped[Optional[str]] = mapped_column(String(16))  # modo de decisión con que se calculó
     started_at: Mapped[Optional[datetime]] = ts(nullable=True)
     finished_at: Mapped[Optional[datetime]] = ts(nullable=True)
     created_at: Mapped[datetime] = ts(default=utcnow)

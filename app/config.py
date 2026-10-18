@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     rss_enabled: bool = True
 
     demo_fixtures_enabled: bool = False
+    # Quién decide Urgent (sprint 3): jev (pregunta de urgencia de JEV, por defecto) | regla_y_jev | llm (sprint 2).
+    urgency_mode: str = "jev"
     # LLM (sprint 2): ollama | none | fake (tests); openai/anthropic se añadirán como un proveedor más.
     llm_provider: str = ""
     llm_model: str = ""

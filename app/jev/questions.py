@@ -13,7 +13,9 @@ from ..textutil import sentences
 # 1.0.0 = constructor de referencia del kit. 1.1.0 = vínculo regional explícito, contexto geográfico inferido y
 # horizonte temporal en urgencia. 1.2.0 = exposición directa (no indirecta por rutas ajenas), alcance sectorial y
 # urgencia frente al buffer. Ajustes hechos únicamente con el lote de entrenamiento.
-QUESTION_VERSION = "1.2.0"
+# 1.3.0 (sprint 3) = vínculo y riesgo de 1.2.0 con la pregunta de urgencia original del kit (1.0.0): los matices de
+# urgencia añadidos en 1.1/1.2 corregían dos noticias de training en las que JEV ya acertaba casi todo.
+QUESTION_VERSION = "1.3.0"
 
 ARTICLE_FIELDS = ("news_id", "published_date", "source", "headline", "summary", "language", "context_id")
 STAGE_A_SUPPLIER_FIELDS = ("supplier_id", "name", "country", "city", "category", "material", "location_context_inferred", "service_scope")
@@ -87,7 +89,7 @@ def stage_b(policy: dict, article: dict, suppliers: list[dict], duration_candida
         sid = s["supplier_id"]
         prefix = f"For supplier {sid} ({s['name']}) in state.suppliers, using state.article and supplier context: "
         questions[f"risk_{sid}"] = {"type": "noul", "instructions": prefix + "does this news threaten supply to Helixa? Distinguish positive news, unrelated namesakes and harmless local news from supply threats. Watch-list strategic threats may be risks without being urgent."}
-        questions[f"urgent_{sid}"] = {"type": "noul", "instructions": prefix + "does this supply threat require immediate procurement attention because it can stop or seriously delay supply soon? Consider actual operational impact, timing, source dependence, criticality and inventory. A minor, short or slow-moving impact can wait; events expected months ahead, ownership changes and strategic watch-list threats are not urgent unless deliveries are stopped or seriously delayed now. A disruption of a few days, or added transit time that existing inventory cover can absorb, is normally not urgent; compare any stated delay with inventory_days and lead_days when present, and consider whether an approved alternate exists. Urgency needs a production or shipment stop, or a delay likely to exceed the available buffer. No risk implies no urgency. Do not use alarming words alone."}
+        questions[f"urgent_{sid}"] = {"type": "noul", "instructions": prefix + "does this supply threat require immediate procurement attention because it can stop or seriously delay supply soon? Consider actual operational impact, timing, source dependence, criticality and inventory. A minor, short or slow-moving impact can wait. No risk implies no urgency. Do not use alarming words alone."}
         questions[f"severity_{sid}"] = {"type": "score", "instructions": prefix + "rate the severity of the operational event affecting this supplier. Rate the event itself; do not count single-source, spend or criticality again.", "criteria": policy["severity_rubric"]}
         questions[f"impact_state_{sid}"] = {"type": "choice", "instructions": prefix + "select the current impact state, based only on the source and reference date.", "criteria": policy["impact_states"]}
         questions[f"evidence_{sid}"] = {"type": "choice", "instructions": prefix + "select the verbatim passage that best supports the connection and impact. Do not assume another question answer.", "criteria": evidence}

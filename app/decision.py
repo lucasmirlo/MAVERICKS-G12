@@ -15,7 +15,9 @@ from typing import Any
 
 from . import scoring
 
+JEV = "jev"
 FIRM = "regla+jev"
+MODES = ("jev", "regla_y_jev", "llm")
 RULE = "regla"
 LLM = "llm"
 HUMAN = "humano"
@@ -36,17 +38,23 @@ def doubt_reasons(policy: dict, pair: dict, *, linked: bool, urgent_rule: bool, 
     return reasons
 
 
-def evaluate_article(policy: dict, pairs: list[dict], suppliers: dict[str, Any], *, event_type: str | None) -> list[dict]:
+def evaluate_article(policy: dict, pairs: list[dict], suppliers: dict[str, Any], *, event_type: str | None,
+                     mode: str = "llm") -> list[dict]:
     """pairs: dicts con supplier_id, p_link, p_risk, p_urgent, severity_jev, severity_confidence, impact_status,
     impact_confidence, has_evidence, duration_days, link_basis, llm (dict | None), llm_status, manual (dict | None).
-    Devuelve un dict de resultado por pareja, en el mismo orden."""
+    Devuelve un dict de resultado por pareja, en el mismo orden.
+
+    mode (sprint 3): "jev" decide Urgent con p_urgent de JEV; "regla_y_jev" exige regla P y JEV; "llm" deja que el
+    LLM decida los casos dudosos (sprint 2). En los dos primeros la opinión del LLM solo se muestra para revisión."""
+    if mode not in MODES:
+        raise ValueError(f"URGENCY_MODE desconocido: {mode}")
     t = policy["thresholds"]
     base = []
     for pair in pairs:
         dec = scoring.decisions(policy, p_link=pair["p_link"], p_risk=pair["p_risk"], p_urgent=pair["p_urgent"],
                                 impact_status=pair["impact_status"])
         llm = pair.get("llm") or None
-        confident = bool(llm and llm.get("confianza") in LLM_DECISIVE)
+        confident = bool(mode == "llm" and llm and llm.get("confianza") in LLM_DECISIVE)
         manual = pair.get("manual") or None
         if manual:
             linked, is_risk = bool(manual["vinculado"]), bool(manual["vinculado"] and manual["es_riesgo"])
@@ -89,6 +97,10 @@ def evaluate_article(policy: dict, pairs: list[dict], suppliers: dict[str, Any],
         elif confident:
             urgent, source = bool(is_risk and llm["urgente"]), LLM
             reasons = [r for r in reasons if r not in ("ambiguous_probability", "contradictory_impact_state")]
+        elif mode == "jev":
+            urgent, source = jev_urgent, JEV
+        elif mode == "regla_y_jev":
+            urgent, source = bool(urgent_rule and jev_urgent), FIRM
         elif doubts:
             urgent, source = urgent_rule, RULE
             if llm and llm.get("confianza") == "baja":
@@ -100,6 +112,12 @@ def evaluate_article(policy: dict, pairs: list[dict], suppliers: dict[str, Any],
         else:
             urgent, source = urgent_rule, FIRM
 
+        opinion = llm if (llm and llm.get("confianza") in LLM_DECISIVE) else None
+        if mode != "llm" and opinion and not manual:
+            # La IA no decide en estos modos: si discrepa con firmeza, la pareja va a revisión humana con su propuesta.
+            if (bool(opinion["vinculado"]) != linked or bool(opinion["vinculado"] and opinion["es_riesgo"]) != is_risk
+                    or bool(opinion["urgente"]) != bool(urgent and is_risk)):
+                reasons.append("llm_disagrees")
         if linked and pair.get("impact_confidence") is not None and pair["impact_confidence"] < t["choice_score_confidence"] and source not in (LLM, HUMAN):
             reasons.append("low_impact_state_confidence")
         if is_risk and pair.get("severity_confidence") is not None and pair["severity_confidence"] < t["choice_score_confidence"]:
@@ -119,7 +137,8 @@ def evaluate_article(policy: dict, pairs: list[dict], suppliers: dict[str, Any],
             urgent = False
         # Sonido solo con decisión firme: regla+JEV con probabilidades altas, IA con confianza alta o persona.
         # Una regla sin segunda opinión o un vínculo solo regional inferido no suenan.
-        firm_enough = ((source == FIRM and pair["p_link"] >= t["audible_probability"] and pair["p_risk"] >= t["audible_probability"])
+        firm_enough = ((source == JEV and min(pair["p_link"], pair["p_risk"], pair["p_urgent"]) >= t["audible_probability"])
+                       or (source == FIRM and pair["p_link"] >= t["audible_probability"] and pair["p_risk"] >= t["audible_probability"])
                        or (source == LLM and llm.get("confianza") == "alta") or source == HUMAN)
         sound = bool(urgent and pair["impact_status"] == "active" and not needs_review and firm_enough
                      and pair.get("link_basis") != "inferred_region")

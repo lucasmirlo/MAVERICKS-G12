@@ -3,6 +3,7 @@ import type { DecisionSource, LlmDecision, LlmStatus } from '../lib/types'
 import { Badge } from './ui'
 
 const SOURCE: Record<DecisionSource, { label: string; tone: 'info' | 'accent' | 'ok' | 'neutral'; icon: typeof Scale; title: string }> = {
+  jev: { label: 'JEV', tone: 'info', icon: Workflow, title: 'Urgencia según la pregunta de urgencia de JEV (modo jev)' },
   regla: { label: 'Regla', tone: 'neutral', icon: Scale, title: 'Decidió la regla de prioridad (sin segunda opinión concluyente)' },
   'regla+jev': { label: 'Regla + JEV', tone: 'info', icon: Workflow, title: 'La regla de prioridad y JEV coinciden: decisión firme' },
   llm: { label: 'IA', tone: 'accent', icon: Bot, title: 'Caso dudoso decidido por el modelo de lenguaje local' },
@@ -39,7 +40,7 @@ export function LlmReasoning({ decision, status }: { decision: LlmDecision | nul
   return (
     <div className="mt-2 rounded-lg border border-accent/25 bg-lavender p-3 text-sm">
       <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-accent-strong">
-        <Bot className="size-3.5" aria-hidden /> Razonamiento de la IA · confianza {decision.confianza}
+        <Bot className="size-3.5" aria-hidden /> Opinión de la IA · confianza {decision.confianza}
         {status === 'baja_confianza' && ' · propuesta pendiente de revisión humana'}
       </p>
       <p className="mt-1 leading-relaxed text-ink">{decision.razonamiento}</p>

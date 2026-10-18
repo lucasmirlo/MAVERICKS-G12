@@ -24,7 +24,9 @@ def answer(urgente=False, confianza="media"):
 
 
 @pytest.fixture(autouse=True)
-def reset():
+def reset(monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "urgency_mode", "llm")  # estas pruebas cubren el modo del sprint 2
     yield
     llm.set_provider(None)
 
