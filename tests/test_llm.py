@@ -72,7 +72,8 @@ def test_none_provider_is_unavailable(monkeypatch):
 def test_legacy_variables_map_to_llm(monkeypatch):
     from app.config import get_settings
     s = get_settings()
-    monkeypatch.setattr(s, "llm_provider", "")
+    for name in ("llm_provider", "llm_model", "llm_base_url", "llm_api_key"):
+        monkeypatch.setattr(s, name, "")
     monkeypatch.setattr(s, "explanation_provider", "ollama")
     monkeypatch.setattr(s, "ollama_base_url", "http://otro:11434")
     monkeypatch.setattr(s, "ollama_model", "modelo-x")
