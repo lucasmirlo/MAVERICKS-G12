@@ -6,6 +6,7 @@ os.environ["TYPESAFE_API_KEY"] = "test-key-not-real"
 os.environ["ADMIN_PASSWORD"] = "test-presenter-password"
 os.environ["SESSION_SECRET"] = "test-session-secret-0123456789"
 os.environ["DEMO_FIXTURES_ENABLED"] = "false"
+os.environ["LLM_PROVIDER"] = "none"  # las pruebas nunca llaman a un LLM real
 os.environ["APP_BASE_URL"] = "http://testserver"
 
 import pytest  # noqa: E402

@@ -9,9 +9,6 @@ import hashlib
 import json
 import logging
 
-import httpx
-
-from .config import get_settings
 
 log = logging.getLogger("srr.texts")
 
@@ -141,35 +138,18 @@ PROMPT_DRAFT = ("Reescribe la plantilla seleccionada con tono profesional y brev
 
 
 def generator_available() -> bool:
-    s = get_settings()
-    if s.explanation_provider == "ollama":
-        return bool(s.ollama_base_url and s.ollama_model)
-    if s.explanation_provider == "compatible":
-        return bool(s.generator_base_url and s.generator_model)
-    return False
+    from . import llm
+    return llm.is_available()
 
 
 def generate(prompt: str, ctx: dict, template: str) -> tuple[str, str, str | None]:
-    """Devuelve (texto, generador, error). Ante cualquier fallo conserva la plantilla."""
-    s = get_settings()
-    if not generator_available():
+    """Devuelve (texto, generador, error). Ante cualquier fallo del LLM conserva la plantilla."""
+    from . import llm
+    if not llm.is_available():
         return template, "template", None
-    user = f"{prompt}\n\nCONTEXTO_VALIDADO:\n{json.dumps(validated_context(ctx), ensure_ascii=False, default=str)}\n\nPLANTILLA:\n{template}"
     try:
-        if s.explanation_provider == "ollama":
-            r = httpx.post(f"{s.ollama_base_url.rstrip('/')}/api/generate", json={"model": s.ollama_model, "prompt": user, "stream": False}, timeout=30)
-            r.raise_for_status()
-            text = r.json().get("response", "")
-        else:
-            headers = {"Authorization": f"Bearer {s.generator_api_key}"} if s.generator_api_key else {}
-            r = httpx.post(f"{s.generator_base_url.rstrip('/')}/chat/completions", headers=headers, timeout=30,
-                           json={"model": s.generator_model, "messages": [{"role": "user", "content": user}], "temperature": 0.2})
-            r.raise_for_status()
-            text = r.json()["choices"][0]["message"]["content"]
-        text = (text or "").strip()
-        if not text:
-            raise ValueError("respuesta vacía")
-        return text[:4000], s.explanation_provider, None
-    except Exception as exc:  # noqa: BLE001
-        log.warning("generator failed: %s", exc.__class__.__name__)
-        return template, "template", f"El generador falló ({exc.__class__.__name__}); se conserva la plantilla."
+        text, rec = llm.draft(validated_context(ctx), template)
+        return text[:4000], f"{rec.provider}:{rec.model}", None
+    except llm.LLMError as exc:
+        log.warning("generator failed: %s", exc.code)
+        return template, "template", f"El generador falló ({exc.code}); se conserva la plantilla."

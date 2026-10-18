@@ -31,6 +31,7 @@ from ..jev.questions import QUESTION_VERSION
 from ..pipeline import engine_mode
 from ..policy import active_policy
 from ..security import ApiError, presenter_configured, read_session
+from ..llm import status as llm_status
 from ..texts import explanation, generator_available
 
 router = APIRouter()
@@ -82,6 +83,7 @@ def meta(request: Request, db: Session = Depends(get_db)):
         "audio": policy["audio"], "worker": {"alive": worker_alive, "last_heartbeat": hb["at"] if hb else None},
         "rss": {"poll_seconds": s.rss_poll_seconds, "daily_budget": s.rss_daily_analysis_budget, "enabled": s.rss_enabled},
         "generator_available": generator_available(),
+        "llm": llm_status(),
         "catalog": {"suppliers": db.scalar(select(func.count(Supplier.supplier_id))) or 0},
     }
 
