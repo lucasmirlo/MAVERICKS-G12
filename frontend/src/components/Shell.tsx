@@ -4,6 +4,7 @@ import {
   Bell,
   BellRing,
   Building2,
+  FileSpreadsheet,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -23,7 +24,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../lib/api'
 import { useAlarm } from '../lib/alarm'
 import { useApp } from '../lib/app-state'
-import { fmtTime } from '../lib/format'
+import { SPLIT_LABEL, fmtTime } from '../lib/format'
 import type { ContextId } from '../lib/types'
 import { Button } from './ui'
 
@@ -219,6 +220,46 @@ function PresenterButton({ compact }: { compact?: boolean }) {
   )
 }
 
+/** Fuente de los datos visibles: Excel del ejercicio (evaluado, con selector de lote) o RSS reales (pitch). */
+export function ScopeBar() {
+  const { contextId, batchId, setBatchId, batches } = useApp()
+  if (contextId === 'rss') {
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line bg-lavender/60 px-3 py-1.5 text-xs text-ink-2 sm:px-5">
+        <Rss className="size-3.5 text-accent" aria-hidden />
+        <span><strong className="text-ink">Fuente: RSS reales</strong> · demostración (pitch), no forma parte de la evaluación · exposición potencial de cartera simulada</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line bg-lavender/60 px-3 py-1.5 text-xs text-ink-2 sm:px-5">
+      <span className="flex items-center gap-1.5">
+        <FileSpreadsheet className="size-3.5 text-accent" aria-hidden />
+        <strong className="text-ink">Fuente evaluada: Excel del ejercicio</strong>
+      </span>
+      <label htmlFor="batch-scope" className="flex items-center gap-1.5">
+        Lote
+        <select
+          id="batch-scope"
+          value={batchId}
+          onChange={(e) => setBatchId(e.target.value)}
+          className="min-h-9 max-w-[16rem] rounded-lg border border-line bg-surface px-2 text-sm font-semibold text-ink"
+        >
+          <option value="">Todos los lotes</option>
+          {batches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {SPLIT_LABEL[b.split] ?? b.split} · {b.completed}/{b.row_count} analizadas
+            </option>
+          ))}
+        </select>
+      </label>
+      {!batchId && batches.filter((b) => b.completed > 0).length > 1 && (
+        <span className="text-review">Mostrando varios lotes juntos; elige uno para ver sus resultados por separado.</span>
+      )}
+    </div>
+  )
+}
+
 function GlobalSearch() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
@@ -374,6 +415,7 @@ export function Shell({ children }: { children: ReactNode }) {
               </div>
             </div>
           </div>
+          <ScopeBar />
           <MobileSoundStrip />
         </header>
         <main id="main" className="mx-auto w-full max-w-[1400px] px-3 pb-28 pt-4 sm:px-5 lg:pb-10">

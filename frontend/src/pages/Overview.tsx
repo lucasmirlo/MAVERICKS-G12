@@ -6,9 +6,9 @@ import { ArticleItem } from '../components/ArticleItem'
 import { BatchPanel } from '../components/BatchPanel'
 import { SupplierCards, SupplierTable } from '../components/SupplierRanking'
 import { Card, CardHeader, EmptyState, ErrorState, Kpi, Loading, Notice } from '../components/ui'
-import { api } from '../lib/api'
+import { api, qs } from '../lib/api'
 import { POLL_MS, useApp } from '../lib/app-state'
-import { fmtDateTime, fmtDay, fmtRelative } from '../lib/format'
+import { SPLIT_LABEL, fmtDateTime, fmtDay, fmtRelative } from '../lib/format'
 import type { Overview as OverviewT } from '../lib/types'
 import { SourceMini } from './Sources'
 
@@ -49,10 +49,10 @@ export function EngineNotice() {
 }
 
 export default function Overview() {
-  const { contextId, presenter, meta } = useApp()
+  const { contextId, presenter, meta, scope, batchId, setBatchId } = useApp()
   const q = useQuery({
-    queryKey: ['overview', contextId],
-    queryFn: () => api.get<OverviewT>(`/api/overview?context_id=${contextId}`),
+    queryKey: ['overview', scope],
+    queryFn: () => api.get<OverviewT>(`/api/overview${qs(scope)}`),
     refetchInterval: POLL_MS,
   })
   if (q.isLoading) return <Loading />
@@ -66,12 +66,13 @@ export default function Overview() {
     n: d.priority_distribution[b] ?? 0,
   }))
   const bySource = Object.entries(d.by_source).map(([name, n]) => ({ name, n }))
-  const activeBatches = d.batches.filter((b) => b.analysis_requested_at).slice(0, 2)
+  const selected = d.batches.find((b) => b.id === batchId)
+  const activeBatches = selected ? [selected] : d.batches.filter((b) => b.analysis_requested_at && !b.analysis_completed_at)
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold text-ink sm:text-2xl">Resumen · {d.context_label}</h1>
+          <h1 className="text-xl font-bold text-ink sm:text-2xl">Resumen · {d.context_label}{selected ? ` · ${SPLIT_LABEL[selected.split] ?? selected.split}` : ''}</h1>
           <p className="text-sm text-ink-2">
             {contextId === 'rss' ? 'Hora real' : d.clock_kind === 'presenter' ? 'Reloj elegido por el presentador' : d.clock_kind === 'logical' ? 'Reloj lógico del lote' : 'Sin lote analizado · fecha actual'}: {contextId === 'rss' ? fmtDateTime(d.clock) : fmtDay(d.clock)}
             {d.last_analysis_at && <> · último análisis {fmtRelative(d.last_analysis_at)}</>}
@@ -97,8 +98,13 @@ export default function Overview() {
           detail={`${k.requires_update} requieren actualización · ${k.incidents_total} totales`} />
         <Kpi label="Noticias procesadas" icon={<Newspaper className="size-4 text-accent" aria-hidden />} value={`${k.processed}/${k.articles_total}`}
           detail={`${k.linked} vinculadas · ${k.risk} riesgo · ${k.error} error · ${k.pending} sin analizar o en cola`} />
-        <Kpi label="Fuentes operativas" icon={<Rss className="size-4 text-accent" aria-hidden />} value={`${k.sources_operational}/${k.sources_total}`}
-          detail="RSS con consulta correcta reciente" />
+        {contextId === 'rss' ? (
+          <Kpi label="Fuentes operativas" icon={<Rss className="size-4 text-accent" aria-hidden />} value={`${k.sources_operational}/${k.sources_total}`}
+            detail="RSS con consulta correcta reciente" />
+        ) : (
+          <Kpi label="Lotes Excel analizados" icon={<FileSpreadsheet className="size-4 text-accent" aria-hidden />} value={`${k.batches_analyzed}/${k.batches_total}`}
+            detail="Archivos del ejercicio con todas sus filas analizadas" />
+        )}
       </div>
 
       {contextId === 'exercise' && activeBatches.length > 0 && (
@@ -174,10 +180,36 @@ export default function Overview() {
               </div>
             </Card>
           )}
-          <Card aria-labelledby="src-h">
-            <CardHeader id="src-h" title="Estado de fuentes" action={<Link to="/fuentes" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent-strong">Fuentes <ArrowRight className="size-4" aria-hidden /></Link>} />
-            <ul className="divide-y divide-line/70">{d.sources.map((s) => <SourceMini key={s.id} s={s} />)}</ul>
-          </Card>
+          {contextId === 'rss' ? (
+            <Card aria-labelledby="src-h">
+              <CardHeader id="src-h" title="Estado de fuentes RSS" subtitle="Pitch: no forma parte de la evaluación." action={<Link to="/fuentes" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent-strong">Fuentes <ArrowRight className="size-4" aria-hidden /></Link>} />
+              <ul className="divide-y divide-line/70">{d.sources.map((s) => <SourceMini key={s.id} s={s} />)}</ul>
+            </Card>
+          ) : (
+            <Card aria-labelledby="xls-h">
+              <CardHeader id="xls-h" title="Fuentes del ejercicio (Excel)" subtitle="Lo que se evalúa. Pulsa un lote para ver solo sus resultados." />
+              {d.batches.length === 0 ? (
+                <p className="p-4 text-sm text-ink-2">Sin archivos importados.</p>
+              ) : (
+                <ul className="divide-y divide-line/70">
+                  {d.batches.map((b) => (
+                    <li key={b.id}>
+                      <button onClick={() => setBatchId(b.id === batchId ? '' : b.id)} aria-pressed={b.id === batchId}
+                        className={`flex min-h-12 w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm hover:bg-bg ${b.id === batchId ? 'bg-lavender' : ''}`}>
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-ink">{SPLIT_LABEL[b.split] ?? b.split} · {b.sheet_name}</span>
+                          <span className="block text-xs text-ink-2">{b.file_name} · {b.row_count} filas{b.has_labels ? ' · con etiquetas' : ''}</span>
+                        </span>
+                        <span className="tabular shrink-0 text-xs font-semibold text-ink-2">
+                          {b.completed}/{b.row_count}{b.export?.ready ? ' · exportable' : ''}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
         </div>
       </div>
     </div>

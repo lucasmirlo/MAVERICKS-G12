@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, CircleDashed, ExternalLink, Loader2, MinusCircle, RefreshCw, WifiOff } from 'lucide-react'
+import { CheckCircle2, CircleDashed, ExternalLink, FileSpreadsheet, Loader2, MinusCircle, RefreshCw, Rss, WifiOff } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card, CardHeader, ErrorState, Field, Loading, Notice } from '../components/ui'
 import { api, ApiError } from '../lib/api'
 import { POLL_MS, useApp } from '../lib/app-state'
-import { fmtDateTime, fmtRelative } from '../lib/format'
+import { SPLIT_LABEL, fmtDateTime, fmtDay, fmtRelative } from '../lib/format'
 import type { Source } from '../lib/types'
 
 function SourceStatus({ s }: { s: Source }) {
@@ -40,7 +40,7 @@ interface SourcesResponse {
 }
 
 export default function Sources() {
-  const { presenter, openLogin } = useApp()
+  const { presenter, openLogin, batches, setBatchId, setContextId } = useApp()
   const qc = useQueryClient()
   const [msg, setMsg] = useState<string | null>(null)
   const q = useQuery({ queryKey: ['sources'], queryFn: () => api.get<SourcesResponse>('/api/sources'), refetchInterval: POLL_MS })
@@ -57,9 +57,39 @@ export default function Sources() {
   const d = q.data
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 className="text-xl font-bold sm:text-2xl">Fuentes</h1>
+        <p className="text-sm text-ink-2">Dos orígenes separados: los archivos Excel del ejercicio (lo que se evalúa y se exporta) y los RSS reales (demostración del producto).</p>
+      </div>
+      <section aria-labelledby="xls-src" className="flex flex-col gap-3">
+        <h2 id="xls-src" className="flex items-center gap-2 text-lg font-bold"><FileSpreadsheet className="size-5 text-accent" aria-hidden /> Ejercicio · archivos Excel (evaluado)</h2>
+        {batches.length === 0 ? (
+          <Card><p className="p-4 text-sm text-ink-2">Sin archivos importados. El presentador los importa desde su panel.</p></Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {batches.map((b) => (
+              <Card key={b.id} as="article" aria-labelledby={`xls-${b.id}`}>
+                <CardHeader id={`xls-${b.id}`} title={SPLIT_LABEL[b.split] ?? b.split} subtitle={`${b.file_name} · hoja ${b.sheet_name}`}
+                  action={b.completed === b.row_count && b.row_count ? <Badge tone="ok">Analizado</Badge> : b.completed ? <Badge tone="review">Parcial</Badge> : <Badge>Sin analizar</Badge>} />
+                <dl className="grid grid-cols-2 gap-3 p-4">
+                  <Field label="Filas">{b.row_count}</Field>
+                  <Field label="Analizadas">{b.completed} / {b.row_count}</Field>
+                  <Field label="Fecha lógica">{fmtDay(b.logical_date)}</Field>
+                  <Field label="Etiquetas">{b.has_labels ? 'Sí (solo evaluación)' : 'No'}</Field>
+                  <Field label="Importado">{fmtDateTime(b.created_at)}</Field>
+                  <Field label="SHA-256">{b.file_sha256}</Field>
+                </dl>
+                <div className="border-t border-line px-4 py-3">
+                  <button className="text-sm font-semibold text-accent-strong underline" onClick={() => { setContextId('exercise'); setBatchId(b.id) }}>Ver solo este lote</button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+      <div className="flex flex-wrap items-end justify-between gap-3 border-t border-line pt-4">
         <div>
-          <h1 className="text-xl font-bold sm:text-2xl">Fuentes RSS</h1>
+          <h2 className="flex items-center gap-2 text-lg font-bold"><Rss className="size-5 text-accent" aria-hidden /> Noticias reales · RSS (pitch)</h2>
           <p className="text-sm text-ink-2">
             {d.operational} de {d.total} operativas · sondeo automático cada 5 min · {d.analysis_queue} artículos en cola de análisis
             {d.deferred_by_budget ? ` · ${d.deferred_by_budget} en espera por cupo diario` : ''} · cupo {d.budget.used_today}/{d.budget.daily} hoy (UTC)
@@ -76,8 +106,8 @@ export default function Sources() {
         )}
       </div>
       {msg && <p role="status" className="text-sm text-ink">{msg}</p>}
-      <Notice tone="info" title="Consultas reales">
-        Cada estado procede de la última petición HTTP real del worker. Un fallo de una fuente no detiene a las demás y los artículos previos conservan su fecha.
+      <Notice tone="info" title="Consultas reales, fuera de la evaluación">
+        Cada estado procede de la última petición HTTP real del worker. Un fallo de una fuente no detiene a las demás y los artículos previos conservan su fecha. Estos artículos nunca entran en la exportación del reto.
       </Notice>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {d.items.map((s) => (

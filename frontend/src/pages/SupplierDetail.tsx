@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { DraftDialog } from '../components/DraftDialog'
 import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { Badge, Button, Card, CardHeader, EmptyState, ErrorState, Field, Loading, PriorityBadge, ReviewBadge, UrgencyBadge } from '../components/ui'
-import { api, ApiError } from '../lib/api'
+import { api, ApiError, qs } from '../lib/api'
 import { POLL_MS, useApp } from '../lib/app-state'
 import { CRIT_LABEL, EVENT_LABEL, IMPACT_LABEL, fmtDays, fmtEur, fmtNum, fmtPub, reviewLabel } from '../lib/format'
 import type { Draft, Incident, SupplierDetail as SD } from '../lib/types'
@@ -53,10 +53,10 @@ function IncidentCard({ inc, context }: { inc: Incident; context: string }) {
 
 export default function SupplierDetail() {
   const { id = '' } = useParams()
-  const { contextId, presenter, openLogin } = useApp()
+  const { contextId, presenter, openLogin, scope } = useApp()
   const [draft, setDraft] = useState<Draft | null>(null)
   const [err, setErr] = useState<string | null>(null)
-  const q = useQuery({ queryKey: ['supplier', id, contextId], queryFn: () => api.get<SD>(`/api/suppliers/${id}?context_id=${contextId}`), refetchInterval: POLL_MS })
+  const q = useQuery({ queryKey: ['supplier', id, scope], queryFn: () => api.get<SD>(`/api/suppliers/${id}${qs(scope)}`), refetchInterval: POLL_MS })
   const create = useMutation({
     mutationFn: (kind: 'supplier' | 'alternate') => {
       const top = q.data?.incidents.find((i) => i.status !== 'resolved') ?? q.data?.incidents[0]

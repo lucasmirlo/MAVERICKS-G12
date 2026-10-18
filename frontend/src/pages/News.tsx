@@ -7,8 +7,7 @@ import { ArticleItem } from '../components/ArticleItem'
 import { Button, Card, EmptyState, ErrorState, Loading, Select } from '../components/ui'
 import { api, qs } from '../lib/api'
 import { POLL_MS, useApp } from '../lib/app-state'
-import { SPLIT_LABEL } from '../lib/format'
-import type { ArticleBrief, BatchProgress, Paged, Source } from '../lib/types'
+import type { ArticleBrief, Paged, Source } from '../lib/types'
 import { ContextBanner } from './Overview'
 
 const CHIPS = [
@@ -25,20 +24,18 @@ const CHIPS = [
 ]
 
 export default function News() {
-  const { contextId } = useApp()
+  const { contextId, batchId } = useApp()
   const [params, setParams] = useSearchParams()
   const [rel, setRel] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const source = params.get('source') ?? ''
-  const batch = params.get('batch') ?? ''
   const sources = useQuery({ queryKey: ['sources'], queryFn: () => api.get<{ items: Source[] }>('/api/sources'), enabled: contextId === 'rss' })
-  const batches = useQuery({ queryKey: ['batches', contextId], queryFn: () => api.get<{ items: BatchProgress[] }>(`/api/batches?context_id=${contextId}`), enabled: contextId === 'exercise' })
   const q = useQuery({
-    queryKey: ['articles', contextId, rel, search, source, batch, page],
+    queryKey: ['articles', contextId, rel, search, source, batchId, page],
     queryFn: () =>
       api.get<Paged<ArticleBrief> & { counts: Record<string, number> }>(
-        `/api/articles${qs({ context_id: contextId, relevance: rel, q: search, source_id: contextId === 'rss' ? source : '', batch_id: contextId === 'exercise' ? batch : '', page, page_size: 25 })}`,
+        `/api/articles${qs({ context_id: contextId, relevance: rel, q: search, source_id: contextId === 'rss' ? source : '', batch_id: contextId === 'exercise' ? batchId : '', page, page_size: 25 })}`,
       ),
     refetchInterval: POLL_MS,
     placeholderData: (prev) => prev,
@@ -71,11 +68,7 @@ export default function News() {
             <div className="w-full sm:w-56">
               <Select id="news-src" label="Fuente" value={source} onChange={(v) => setParam('source', v)} options={[{ value: '', label: 'Todas las fuentes' }, ...(sources.data?.items ?? []).map((s) => ({ value: s.id, label: s.name }))]} />
             </div>
-          ) : (
-            <div className="w-full sm:w-64">
-              <Select id="news-batch" label="Lote" value={batch} onChange={(v) => setParam('batch', v)} options={[{ value: '', label: 'Todos los lotes' }, ...(batches.data?.items ?? []).filter((b) => b.kind === 'news').map((b) => ({ value: b.id, label: `${SPLIT_LABEL[b.split] ?? b.split} · ${b.sheet_name}` }))]} />
-            </div>
-          )}
+          ) : null}
         </div>
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label="Filtrar por relevancia">
           {CHIPS.map((c) => (

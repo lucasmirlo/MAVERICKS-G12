@@ -36,6 +36,16 @@ from ..texts import explanation, generator_available
 router = APIRouter()
 
 
+def batch_param(db: Session, context_id: str, batch_id: str | None) -> str | None:
+    """Lote Excel seleccionado (solo en Ejercicio). Valida que exista y pertenezca al contexto."""
+    if not batch_id or context_id == CONTEXT_RSS:
+        return None
+    b = db.get(ImportBatch, batch_id)
+    if b is None or b.kind != "news" or b.context_id != context_id:
+        raise ApiError(404, "batch_not_found", "Lote no encontrado en este contexto.")
+    return b.id
+
+
 def ctx_param(context_id: str = Query(CONTEXT_EXERCISE)) -> str:
     if context_id not in CONTEXTS:
         raise ApiError(400, "invalid_context", "Contexto desconocido.")
@@ -77,13 +87,19 @@ def meta(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/overview")
-def overview(context_id: str = Depends(ctx_param), db: Session = Depends(get_db)):
-    rank = q.ranking(db, context_id)
-    clock, clock_kind = q.context_clock(db, context_id)
-    incs = list(db.scalars(select(Incident).where(Incident.context_id == context_id)))
+def overview(context_id: str = Depends(ctx_param), batch_id: str | None = None, db: Session = Depends(get_db)):
+    batch_id = batch_param(db, context_id, batch_id)
+    rank = q.ranking(db, context_id, batch_id)
+    clock, clock_kind = q.context_clock(db, context_id, batch_id)
+    inc_stmt = select(Incident).where(Incident.context_id == context_id)
+    art_stmt = select(Article).where(Article.context_id == context_id)
+    if batch_id:
+        inc_stmt = inc_stmt.where(Incident.batch_id == batch_id)
+        art_stmt = art_stmt.where(Article.batch_id == batch_id)
+    incs = list(db.scalars(inc_stmt))
     active = [i for i in incs if i.status != "resolved"]
-    total_articles = db.scalar(select(func.count(Article.id)).where(Article.context_id == context_id)) or 0
-    articles = list(db.scalars(select(Article).where(Article.context_id == context_id)))
+    articles = list(db.scalars(art_stmt))
+    total_articles = len(articles)
     analyses = {a.id: q.current_analysis(db, a) for a in articles}
     status_counts = {"processed": 0, "review": 0, "error": 0, "pending": 0, "linked": 0, "risk": 0, "urgent": 0, "positive": 0}
     durations = []
@@ -109,7 +125,12 @@ def overview(context_id: str = Depends(ctx_param), db: Session = Depends(get_db)
             status_counts["positive"] += 1
         if an.duration_ms and not an.cached:
             durations.append(an.duration_ms)
-    sources = [q.source_dict(db, s) for s in db.scalars(select(Source).order_by(Source.name))]
+    # Las fuentes RSS (pitch) solo se muestran en Noticias reales; Ejercicio usa sus archivos Excel (evaluados).
+    sources = [q.source_dict(db, s) for s in db.scalars(select(Source).order_by(Source.name))] if context_id == CONTEXT_RSS else []
+    excel = [] if context_id == CONTEXT_RSS else [
+        {**q.batch_progress(db, b), "export": export_status(db, b)}
+        for b in db.scalars(select(ImportBatch).where(ImportBatch.context_id == context_id, ImportBatch.kind == "news"))]
+    excel.sort(key=lambda b: ["training", "validation", "test", "liveday", "other"].index(b["split"]) if b["split"] in ("training", "validation", "test", "liveday", "other") else 9)
     bands = {"low": 0, "medium": 0, "high": 0, "critical": 0, "pending": 0}
     for i in active:
         bands[i.priority_band if i.priority_band in bands and i.current_priority is not None else "pending"] += 1
@@ -117,10 +138,10 @@ def overview(context_id: str = Depends(ctx_param), db: Session = Depends(get_db)
     if context_id == CONTEXT_RSS:
         for a in articles:
             by_source[a.source_name or "?"] = by_source.get(a.source_name or "?", 0) + 1
-    latest = sorted(articles, key=lambda a: (a.published_at or a.first_seen_at), reverse=True)[:8]
+    latest = sorted(articles, key=lambda a: (a.published_at or a.first_seen_at, -(a.row_index or 0)), reverse=True)[:8]
     last_analysis = max((an.finished_at for an in analyses.values() if an and an.finished_at), default=None)
     return {
-        "context_id": context_id, "context_label": q.CONTEXT_LABELS.get(context_id, context_id),
+        "context_id": context_id, "context_label": q.CONTEXT_LABELS.get(context_id, context_id), "batch_id": batch_id,
         "clock": q.iso(clock), "clock_kind": clock_kind, "last_analysis_at": q.iso(last_analysis),
         "kpis": {
             "urgent_suppliers": sum(1 for r in rank if r["urgent"] == "Y"), "suppliers_total": len(rank),
@@ -128,10 +149,12 @@ def overview(context_id: str = Depends(ctx_param), db: Session = Depends(get_db)
             "incidents_total": len(incs), "articles_total": total_articles, **status_counts,
             "linked_suppliers": len(linked_suppliers),
             "sources_operational": sum(1 for s in sources if s["healthy"]), "sources_total": len(sources),
+            "batches_analyzed": sum(1 for b in excel if b["counts"]["done"] + b["counts"]["review"] == b["row_count"] and b["row_count"]),
+            "batches_total": len(excel),
         },
         "ranking": rank[:12], "latest": [q.article_brief(db, a, analyses[a.id]) for a in latest], "sources": sources,
         "priority_distribution": bands, "by_source": by_source, "latency": q.latency(durations),
-        "batches": [{**q.batch_progress(db, b), "export": export_status(db, b)} for b in db.scalars(select(ImportBatch).where(ImportBatch.context_id == context_id, ImportBatch.kind == "news", ImportBatch.analysis_requested_at.is_not(None)).order_by(ImportBatch.analysis_requested_at.desc()).limit(2))] if context_id != CONTEXT_RSS else [],
+        "batches": excel,
     }
 
 
@@ -139,8 +162,9 @@ def overview(context_id: str = Depends(ctx_param), db: Session = Depends(get_db)
 def suppliers(context_id: str = Depends(ctx_param), search: str | None = Query(None, alias="q"), category: str | None = None,
               criticality: str | None = None, single_source: str | None = None, has_alternate: bool | None = None,
               urgent: bool | None = None, active_only: bool = False, products: str | None = None,
+              batch_id: str | None = None,
               page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=100), db: Session = Depends(get_db)):
-    rows = q.ranking(db, context_id)
+    rows = q.ranking(db, context_id, batch_param(db, context_id, batch_id))
     if search:
         needle = search.lower()
         rows = [r for r in rows if needle in " ".join(str(r.get(k) or "") for k in ("supplier_id", "name", "country", "city", "material", "category")).lower()]
@@ -167,24 +191,28 @@ def suppliers(context_id: str = Depends(ctx_param), search: str | None = Query(N
 
 
 @router.get("/suppliers/{supplier_id}")
-def supplier_detail(supplier_id: str, context_id: str = Depends(ctx_param), db: Session = Depends(get_db)):
+def supplier_detail(supplier_id: str, context_id: str = Depends(ctx_param), batch_id: str | None = None, db: Session = Depends(get_db)):
     s = db.get(Supplier, supplier_id)
     if s is None:
         raise ApiError(404, "supplier_not_found", f"No existe el proveedor {supplier_id}.")
+    batch_id = batch_param(db, context_id, batch_id)
     policy = active_policy(db)
-    clock, _ = q.context_clock(db, context_id)
+    clock, _ = q.context_clock(db, context_id, batch_id)
     alt = db.get(Supplier, s.alternate_id) if s.alternate_id else None
     backed_up_by = [q.supplier_brief(x) for x in db.scalars(select(Supplier).where(Supplier.alternate_id == supplier_id))]
     prod = q.products_by_supplier(db).get(supplier_id)
-    incs = list(db.scalars(select(Incident).where(Incident.context_id == context_id, Incident.supplier_id == supplier_id)
-                           .order_by(Incident.last_evidence_at.desc())))
+    inc_stmt = select(Incident).where(Incident.context_id == context_id, Incident.supplier_id == supplier_id)
+    if batch_id:
+        inc_stmt = inc_stmt.where(Incident.batch_id == batch_id)
+    incs = list(db.scalars(inc_stmt.order_by(Incident.last_evidence_at.desc())))
     inc_dicts = [q.incident_summary(db, i, clock) for i in incs]
     # Noticias vinculadas: parejas aceptadas de análisis vigentes en este contexto.
     news = []
     rows = db.execute(select(SupplierAssessment, Analysis, Article).join(Analysis, Analysis.id == SupplierAssessment.analysis_id)
                       .join(Article, Article.id == Analysis.article_id)
                       .where(SupplierAssessment.supplier_id == supplier_id, Article.context_id == context_id,
-                             Analysis.article_version_id == Article.current_version_id)
+                             Analysis.article_version_id == Article.current_version_id,
+                             *( [Article.batch_id == batch_id] if batch_id else [] ))
                       .order_by(Article.published_at.desc(), Analysis.created_at.desc())).all()
     seen = set()
     for a, an, art in rows:
@@ -327,12 +355,15 @@ def sources(db: Session = Depends(get_db)):
 
 @router.get("/alerts")
 def alerts(context_id: str | None = Query(None), after: int = Query(0, ge=0), status: str | None = None,
-           limit: int = Query(100, ge=1, le=200), db: Session = Depends(get_db)):
+           batch_id: str | None = None, limit: int = Query(100, ge=1, le=200), db: Session = Depends(get_db)):
     stmt = select(Alert)
     if context_id:
         if context_id not in CONTEXTS:
             raise ApiError(400, "invalid_context", "Contexto desconocido.")
         stmt = stmt.where(Alert.context_id == context_id)
+        batch_id = batch_param(db, context_id, batch_id)
+        if batch_id:
+            stmt = stmt.where(Alert.batch_id == batch_id)
     if after:
         stmt = stmt.where(Alert.seq > after)
     if status in ("unread", "acknowledged"):

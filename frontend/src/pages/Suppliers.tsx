@@ -28,7 +28,7 @@ function FilterFields({ f, set, categories }: { f: Filters; set: (f: Filters) =>
 }
 
 export default function Suppliers() {
-  const { contextId } = useApp()
+  const { scope } = useApp()
   const [params, setParams] = useSearchParams()
   const [filters, setFilters] = useState<Filters>(EMPTY)
   const [draft, setDraft] = useState<Filters>(EMPTY)
@@ -36,8 +36,8 @@ export default function Suppliers() {
   const [page, setPage] = useState(1)
   const search = params.get('q') ?? ''
   const q = useQuery({
-    queryKey: ['suppliers', contextId, search, filters, page],
-    queryFn: () => api.get<Paged<SupplierRow> & { categories: string[] }>(`/api/suppliers${qs({ context_id: contextId, q: search, page, page_size: 20, ...filters })}`),
+    queryKey: ['suppliers', scope, search, filters, page],
+    queryFn: () => api.get<Paged<SupplierRow> & { categories: string[] }>(`/api/suppliers${qs({ ...scope, q: search, page, page_size: 20, ...filters })}`),
     refetchInterval: POLL_MS,
     placeholderData: (prev) => prev,
   })

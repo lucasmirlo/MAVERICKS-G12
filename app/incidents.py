@@ -4,6 +4,8 @@
 - Una recuperación solo resuelve un incidente compatible anterior; si hay varios candidatos, crea revisión.
 - Un artículo antiguo recibido tarde se ordena por su fecha y no reabre un incidente resuelto después.
 - Los IDs de incidente son deterministas, así que reconocimientos de alertas y resoluciones manuales sobreviven.
+- En Ejercicio cada lote Excel es independiente: un incidente nunca agrupa noticias de lotes distintos, para que
+  la evaluación y el ranking de cada archivo no se mezclen. En RSS batch_id es None.
 """
 from __future__ import annotations
 
@@ -78,7 +80,8 @@ def rebuild_context(db: Session, context_id: str) -> dict:
 
     for date, _row, _seen, art, analysis, a in items:
         sid = a.supplier_id
-        mine = [incidents[i] for i in by_supplier.get(sid, [])]
+        scope = (art.batch_id, sid)
+        mine = [incidents[i] for i in by_supplier.get(scope, [])]
         if a.is_recovery:
             open_before = [i for i in mine if i["status"] != "resolved" and i["opened_at"] <= date]
             same_type = [i for i in open_before if i["event_type"] == analysis.event_type]
@@ -119,7 +122,7 @@ def rebuild_context(db: Session, context_id: str) -> dict:
         if open_match is None:
             iid = _incident_id(context_id, sid, art.id)
             inc = {
-                "id": iid, "supplier_id": sid, "event_type": analysis.event_type, "status": status,
+                "id": iid, "supplier_id": sid, "batch_id": art.batch_id, "event_type": analysis.event_type, "status": status,
                 "urgent": a.urgent, "current_priority": a.priority, "peak_priority": a.priority,
                 "band": a.priority_band, "needs_review": a.needs_review, "review_reasons": list(a.review_reasons),
                 "sound_eligible": a.sound_eligible, "opened_at": date, "last_evidence_at": date, "resolved_at": None,
@@ -127,7 +130,7 @@ def rebuild_context(db: Session, context_id: str) -> dict:
                 "trigger_article_id": art.id, "trigger_assessment_id": a.id, "revision_assessments": {1: a},
             }
             incidents[iid] = inc
-            by_supplier.setdefault(sid, []).append(iid)
+            by_supplier.setdefault(scope, []).append(iid)
             links.append(_link(inc, art, a, "trigger", date))
             continue
         inc = open_match
@@ -173,6 +176,7 @@ def rebuild_context(db: Session, context_id: str) -> dict:
         row = existing.get(iid) or Incident(id=iid, context_id=context_id, supplier_id=inc["supplier_id"])
         if iid not in existing:
             db.add(row)
+        row.batch_id = inc["batch_id"]
         row.event_type = inc["event_type"]
         row.status = inc["status"]
         row.urgent = inc["urgent"]
@@ -216,10 +220,11 @@ def rebuild_context(db: Session, context_id: str) -> dict:
             al = existing_alerts.get((iid, rev))
             sound = bool(a.sound_eligible and a.urgent == "Y")
             if al is None:
-                db.add(Alert(incident_id=iid, context_id=context_id, supplier_id=inc["supplier_id"], article_id=a.article_id,
+                db.add(Alert(incident_id=iid, context_id=context_id, batch_id=inc["batch_id"], supplier_id=inc["supplier_id"], article_id=a.article_id,
                              revision=rev, kind=kind, priority=a.priority, urgent=a.urgent, sound_eligible=sound))
             else:
                 al.kind, al.priority, al.urgent, al.sound_eligible, al.article_id = kind, a.priority, a.urgent, sound, a.article_id
+                al.batch_id = inc["batch_id"]
     for key, al in existing_alerts.items():
         if key not in wanted and key[0] in incidents:
             db.delete(al)

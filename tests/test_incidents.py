@@ -8,6 +8,13 @@ from app.queries import ranking
 
 from .helpers import ScriptedJev, add_article, add_catalog
 
+def add(db, *args, **kw):
+    """Noticias del mismo lote Excel (los incidentes no cruzan lotes)."""
+    art, v, b = add_article(db, *args, batch=db.info.get("batch"), row=db.info.get("row", 0), **kw)
+    db.info["batch"], db.info["row"] = b, db.info.get("row", 0) + 1
+    return art, v, b
+
+
 RISK = {"EXS01": {"link": 0.95, "risk": 0.95, "urgent": 0.9, "severity": 9}}
 RECOVERY = {"EXS01": {"link": 0.95, "risk": 0.05, "urgent": 0.02, "impact": "resolved"}}
 
@@ -20,8 +27,8 @@ def analyze(db, v, script, event_type="fire_incident", state="active"):
 
 def test_duplicates_grouped_without_summing(db):
     add_catalog(db)
-    _, v1, b = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
-    _, v2, _ = add_article(db, "Aster Labs fire update", "Production still halted.", published="2026-10-02", news_id="N2")
+    _, v1, b = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v2, _ = add(db, "Aster Labs fire update", "Production still halted.", published="2026-10-02", news_id="N2")
     analyze(db, v1, RISK)
     analyze(db, v2, RISK)
     incs = list(db.scalars(select(Incident)))
@@ -32,8 +39,8 @@ def test_duplicates_grouped_without_summing(db):
 
 def test_distinct_event_stays_independent(db):
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
-    _, v2, _ = add_article(db, "Aster Labs warning letter", "Regulator restricts output.", published="2026-10-03", news_id="N2")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v2, _ = add(db, "Aster Labs warning letter", "Regulator restricts output.", published="2026-10-03", news_id="N2")
     analyze(db, v1, RISK)
     analyze(db, v2, {"EXS01": {"link": 0.95, "risk": 0.9, "urgent": 0.2, "severity": 5}}, event_type="regulatory_action")
     incs = list(db.scalars(select(Incident)))
@@ -44,9 +51,9 @@ def test_distinct_event_stays_independent(db):
 
 def test_recovery_resolves_matching_and_keeps_history(db):
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
-    _, v2, _ = add_article(db, "Aster Labs warning letter", "Regulator restricts output.", published="2026-10-02", news_id="N2")
-    _, v3, _ = add_article(db, "Aster Labs restarts plant after fire", "Production resumed.", published="2026-10-05", news_id="N3")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v2, _ = add(db, "Aster Labs warning letter", "Regulator restricts output.", published="2026-10-02", news_id="N2")
+    _, v3, _ = add(db, "Aster Labs restarts plant after fire", "Production resumed.", published="2026-10-05", news_id="N3")
     analyze(db, v1, RISK)
     analyze(db, v2, {"EXS01": {"link": 0.95, "risk": 0.9, "urgent": 0.2, "severity": 5}}, event_type="regulatory_action")
     analyze(db, v3, RECOVERY, event_type="fire_incident", state="resolved")
@@ -59,8 +66,8 @@ def test_recovery_resolves_matching_and_keeps_history(db):
 def test_recovery_processed_first_still_resolves(db):
     """Orden de procesamiento distinto del orden de publicación (worker paralelo)."""
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
-    _, v3, _ = add_article(db, "Aster Labs restarts plant", "Production resumed.", published="2026-10-05", news_id="N3")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v3, _ = add(db, "Aster Labs restarts plant", "Production resumed.", published="2026-10-05", news_id="N3")
     analyze(db, v3, RECOVERY, event_type="recovery", state="resolved")
     analyze(db, v1, RISK)
     inc = db.scalar(select(Incident))
@@ -69,9 +76,9 @@ def test_recovery_processed_first_still_resolves(db):
 
 def test_late_old_article_does_not_reopen(db):
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
-    _, v3, _ = add_article(db, "Aster Labs restarts", "Production resumed.", published="2026-10-05", news_id="N3")
-    _, v2, _ = add_article(db, "Fire at Aster Labs: day two", "Still halted.", published="2026-10-02", news_id="N2")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v3, _ = add(db, "Aster Labs restarts", "Production resumed.", published="2026-10-05", news_id="N3")
+    _, v2, _ = add(db, "Fire at Aster Labs: day two", "Still halted.", published="2026-10-02", news_id="N2")
     analyze(db, v1, RISK)
     analyze(db, v3, RECOVERY, event_type="recovery", state="resolved")
     analyze(db, v2, RISK)  # recibido tarde, fecha anterior a la recuperación
@@ -81,7 +88,7 @@ def test_late_old_article_does_not_reopen(db):
 
 def test_alert_stable_across_rebuilds_and_ack_kept(db):
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="N1")
     analyze(db, v1, RISK)
     alerts = list(db.scalars(select(Alert)))
     assert len(alerts) == 1 and alerts[0].sound_eligible and alerts[0].urgent == "Y"
@@ -94,7 +101,7 @@ def test_alert_stable_across_rebuilds_and_ack_kept(db):
 
 def test_review_blocks_sound(db):
     add_catalog(db)
-    _, v, _ = add_article(db, "Cedar Glass fire", "Fire at the vial plant.", news_id="N9")
+    _, v, _ = add(db, "Cedar Glass fire", "Fire at the vial plant.", news_id="N9")
     analyze(db, v, {"EXS03": {"link": 0.95, "risk": 0.95, "urgent": 0.95, "severity": 9}})  # inventario ausente → revisión
     al = db.scalar(select(Alert))
     assert al is not None and al.urgent == "Y" and not al.sound_eligible
@@ -102,7 +109,7 @@ def test_review_blocks_sound(db):
 
 def test_manual_resolution_survives_rebuild(db):
     add_catalog(db)
-    _, v1, _ = add_article(db, "Fire at Aster Labs", "Fire halted production.", news_id="N1")
+    _, v1, _ = add(db, "Fire at Aster Labs", "Fire halted production.", news_id="N1")
     analyze(db, v1, RISK)
     inc = db.scalar(select(Incident))
     incidents.resolve_manually(db, inc, "Confirmado por el proveedor")
@@ -110,3 +117,22 @@ def test_manual_resolution_survives_rebuild(db):
     db.expire_all()
     inc = db.scalar(select(Incident))
     assert inc.status == "resolved" and inc.resolution["manual"]
+
+
+def test_batches_never_share_incidents(db):
+    add_catalog(db)
+    _, v1, b1 = add_article(db, "Fire at Aster Labs", "Fire halted production.", published="2026-10-01", news_id="T1")
+    _, v2, b2 = add_article(db, "Aster Labs fire update", "Production still halted.", published="2026-10-02", news_id="L1")
+    analyze(db, v1, RISK)
+    analyze(db, v2, RISK)
+    incs = list(db.scalars(select(Incident)))
+    assert len(incs) == 2 and {i.batch_id for i in incs} == {b1.id, b2.id}
+    assert {a.batch_id for a in db.scalars(select(Alert))} == {b1.id, b2.id}
+    for al in db.scalars(select(Alert)):
+        al.batch_id = None  # alertas anteriores a la migración
+    db.commit()
+    incidents.rebuild_context(db, "exercise")
+    db.expire_all()
+    assert {a.batch_id for a in db.scalars(select(Alert))} == {b1.id, b2.id}
+    row = next(r for r in ranking(db, "exercise", b2.id) if r["supplier_id"] == "EXS01")
+    assert row["active_incidents"] == 1

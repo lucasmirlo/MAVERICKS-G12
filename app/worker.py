@@ -167,6 +167,9 @@ def main() -> None:
     with SessionLocal() as db:
         ensure_seeded(db)
         rss.seed_sources(db)
+        # Reconstrucción idempotente: aplica la lógica vigente de incidentes (p. ej. separación por lote) a los datos existentes.
+        for context_id in ("exercise", "rss"):
+            incidents.rebuild_context(db, context_id)
     for sig in (signal.SIGINT, signal.SIGTERM):
         try:
             signal.signal(sig, lambda *_: stop_event.set())

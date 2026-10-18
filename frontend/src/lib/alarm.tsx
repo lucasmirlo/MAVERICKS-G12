@@ -70,7 +70,9 @@ function tone(ctx: AudioContext, freq: number, start: number, dur: number, peak:
 }
 
 export function AlarmProvider({ children }: { children: ReactNode }) {
-  const { meta } = useApp()
+  const { meta, contextId, batchId } = useApp()
+  const scopeRef = useRef({ contextId, batchId })
+  scopeRef.current = { contextId, batchId }
   const cooldownMs = (meta?.audio.cooldown_seconds ?? 30) * 1000
   const ctxRef = useRef<AudioContext | null>(null)
   const [state, setState] = useState<AudioState>(() => (typeof window !== 'undefined' && !(window.AudioContext || window.webkitAudioContext) ? 'unsupported' : 'off'))
@@ -156,7 +158,9 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       ssSet(CURSOR_KEY, String(data.cursor))
       return
     }
-    const fresh = data.items.filter((a) => a.seq > (cursor.current ?? 0))
+    // Solo cuenta lo que pertenece al contexto (y lote) que se está viendo: el RSS no interrumpe el ejercicio.
+    const { contextId: ctx, batchId: bid } = scopeRef.current
+    const fresh = data.items.filter((a) => a.seq > (cursor.current ?? 0) && a.context_id === ctx && (!bid || a.batch_id === bid))
     cursor.current = Math.max(cursor.current, data.cursor)
     ssSet(CURSOR_KEY, String(cursor.current))
     if (!fresh.length) return
@@ -180,9 +184,9 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
   }, [alerts.data, cooldownMs, playAlarm])
 
   useEffect(() => {
-    const unread = alerts.data?.unread ?? 0
+    const unread = alerts.data?.unread_by_context?.[contextId] ?? 0
     document.title = unread > 0 ? `(${unread}) Supplier Risk Radar` : 'Supplier Risk Radar'
-  }, [alerts.data?.unread])
+  }, [alerts.data?.unread_by_context, contextId])
 
   useEffect(() => () => {
     if (pendingTimer.current) window.clearTimeout(pendingTimer.current)
@@ -194,13 +198,13 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       enable,
       test,
       setMuted,
-      unread: alerts.data?.unread ?? 0,
+      unread: alerts.data?.unread_by_context?.[contextId] ?? 0,
       unreadByContext: alerts.data?.unread_by_context ?? {},
       toast,
       dismissToast: () => setToast(null),
       lastPlayedAt,
     }),
-    [state, enable, test, setMuted, alerts.data, toast, lastPlayedAt],
+    [state, enable, test, setMuted, alerts.data, toast, lastPlayedAt, contextId],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

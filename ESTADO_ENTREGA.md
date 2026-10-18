@@ -9,7 +9,7 @@ Fecha de la auditoría: 18 de octubre de 2026 (UTC). Estado global: **demo despl
 | URL pública | https://web-production-03417.up.railway.app |
 | Proyecto Railway | `supplier-risk-radar` (entorno `production`) |
 | Servicios | `web` (FastAPI + React, dominio HTTPS, pre-deploy `alembic upgrade head`, healthcheck `/readyz`), `worker` (`python -m app.worker`, sin dominio, sin suspensión), `Postgres` |
-| Esquema | Alembic `0002` |
+| Esquema | Alembic `0003` (incidentes y alertas por lote Excel) |
 | Motor | TypeSafe JEV `jev-1.13.0` (modelo devuelto por la API: `jev-1.13.0`), preguntas `1.2.0`, política `1.0.0` |
 | Variables (por nombre) | `DATABASE_URL` (referencia a Postgres), `TYPESAFE_API_KEY`, `JEV_MODEL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `APP_BASE_URL` (solo web), `APP_TIMEZONE`, `RSS_POLL_SECONDS`, `RSS_DAILY_ANALYSIS_BUDGET`, `DEMO_FIXTURES_ENABLED=false`, `EXPLANATION_PROVIDER=template` |
 | Credenciales de presentador | En `.env.railway` (local, ignorado por git). No están en el código ni en el frontend. |
@@ -68,7 +68,7 @@ Informes JSON en `evaluation/runs/`. Validación con 10 noticias y 2 urgentes: n
 
 ## Pruebas automáticas
 
-`python -m pytest -q` → 75 pruebas, todas en verde (PostgreSQL 18 local). Frontend: `tsc -b` y `vite build` sin errores.
+`python -m pytest -q` → 76 pruebas, todas en verde (PostgreSQL 18 local). Frontend: `tsc -b` y `vite build` sin errores.
 
 ## Pendientes reales
 

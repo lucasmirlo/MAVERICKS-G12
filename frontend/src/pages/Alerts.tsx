@@ -6,10 +6,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SoundControl } from '../components/Shell'
 import { Badge, Button, Card, EmptyState, ErrorState, Loading, Notice, PriorityBadge, ReviewBadge } from '../components/ui'
-import { api, ApiError } from '../lib/api'
+import { api, ApiError, qs } from '../lib/api'
 import { useAlarm } from '../lib/alarm'
 import { POLL_MS, useApp } from '../lib/app-state'
-import { EVENT_LABEL, fmtDateTime, fmtNum, fmtPub } from '../lib/format'
+import { EVENT_LABEL, SPLIT_LABEL, fmtDateTime, fmtNum, fmtPub } from '../lib/format'
 import type { Alert, AlertsResponse } from '../lib/types'
 
 type Tab = 'new' | 'ack' | 'resolved'
@@ -54,12 +54,12 @@ function ResolveDialog({ alert, onClose }: { alert: Alert | null; onClose: () =>
 }
 
 export default function Alerts() {
-  const { presenter, openLogin, contextId } = useApp()
+  const { presenter, openLogin, contextId, scope } = useApp()
   const { state } = useAlarm()
   const qc = useQueryClient()
   const [tab, setTab] = useState<Tab>('new')
   const [resolving, setResolving] = useState<Alert | null>(null)
-  const q = useQuery({ queryKey: ['alerts', contextId], queryFn: () => api.get<AlertsResponse>(`/api/alerts?context_id=${contextId}&limit=200`), refetchInterval: POLL_MS })
+  const q = useQuery({ queryKey: ['alerts', scope], queryFn: () => api.get<AlertsResponse>(`/api/alerts${qs({ ...scope, limit: 200 })}`), refetchInterval: POLL_MS })
   const ack = useMutation({ mutationFn: (id: string) => api.post(`/api/alerts/${id}/ack`), onSuccess: () => qc.invalidateQueries({ queryKey: ['alerts'] }) })
   const ackAll = useMutation({ mutationFn: () => api.post(`/api/alerts/ack-all?context_id=${contextId}`), onSuccess: () => qc.invalidateQueries() })
   if (q.isLoading) return <Loading />
@@ -112,7 +112,7 @@ export default function Alerts() {
                       {a.incident_status === 'resolved' && <Badge tone="ok">Incidente resuelto</Badge>}
                       {a.revision > 1 && <Badge tone="accent">Revisión {a.revision}</Badge>}
                       {a.sound_eligible ? <Badge tone="urgent" icon={<Volume2 className="size-3" aria-hidden />}>Sonora</Badge> : <Badge>Solo visual</Badge>}
-                      <Badge>{a.context_id === 'rss' ? 'Noticias reales · exposición potencial' : 'Ejercicio'}</Badge>
+                      <Badge>{a.context_id === 'rss' ? 'Noticias reales · exposición potencial' : `Ejercicio · ${SPLIT_LABEL[a.batch_split ?? ''] ?? 'Excel'}`}</Badge>
                     </div>
                     <Link to={`/proveedores/${a.supplier_id}`} className="mt-1 block font-semibold hover:text-accent-strong hover:underline">{a.supplier_name} ({a.supplier_id})</Link>
                     {a.headline && <Link to={`/noticias/${a.article_id}`} className="block text-sm text-ink-2 hover:underline">{EVENT_LABEL[a.event_type ?? ''] ?? 'Evento'}: {a.headline}</Link>}

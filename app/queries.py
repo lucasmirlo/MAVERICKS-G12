@@ -55,14 +55,17 @@ def set_state(db: Session, key: str, value) -> None:
     db.commit()
 
 
-def context_clock(db: Session, context_id: str) -> tuple[datetime, str]:
+def context_clock(db: Session, context_id: str, batch_id: str | None = None) -> tuple[datetime, str]:
     if context_id == CONTEXT_RSS:
         return utcnow(), "real"
     override = get_state(db, f"clock:{context_id}")
     if override:
         return datetime.fromisoformat(override), "presenter"
-    latest = db.scalar(select(func.max(Article.published_at)).join(Analysis, Analysis.article_id == Article.id)
-                       .where(Article.context_id == context_id, Analysis.status.in_(("done", "review"))))
+    stmt = (select(func.max(Article.published_at)).join(Analysis, Analysis.article_id == Article.id)
+            .where(Article.context_id == context_id, Analysis.status.in_(("done", "review"))))
+    if batch_id:
+        stmt = stmt.where(Article.batch_id == batch_id)
+    latest = db.scalar(stmt)
     return (latest or utcnow()), ("logical" if latest else "real")
 
 
@@ -111,7 +114,7 @@ def incident_summary(db: Session, inc: Incident, clock: datetime, article_cache:
         ver = db.get(ArticleVersion, art.current_version_id) if art else None
         trigger = {"article_id": art.id, "headline": ver.headline if ver else None, "source_name": art.source_name,
                    "published_at": iso(art.published_at), "url": art.url, "news_id": art.external_id} if art else None
-    return {"id": inc.id, "context_id": inc.context_id, "supplier_id": inc.supplier_id, "event_type": inc.event_type, "status": inc.status,
+    return {"id": inc.id, "context_id": inc.context_id, "batch_id": inc.batch_id, "supplier_id": inc.supplier_id, "event_type": inc.event_type, "status": inc.status,
             "urgent": inc.urgent, "current_priority": inc.current_priority if inc.status != "resolved" else 0.0,
             "historical_priority": inc.peak_priority, "priority_band": inc.priority_band, "needs_review": inc.needs_review,
             "review_reasons": inc.review_reasons, "sound_eligible": inc.sound_eligible, "opened_at": iso(inc.opened_at),
@@ -120,10 +123,13 @@ def incident_summary(db: Session, inc: Incident, clock: datetime, article_cache:
             "latest_article": trigger, "history": inc.history or []}
 
 
-def ranking(db: Session, context_id: str) -> list[dict]:
+def ranking(db: Session, context_id: str, batch_id: str | None = None) -> list[dict]:
     suppliers = list(db.scalars(select(Supplier).order_by(Supplier.supplier_id)))
-    incs = list(db.scalars(select(Incident).where(Incident.context_id == context_id)))
-    clock, _ = context_clock(db, context_id)
+    stmt = select(Incident).where(Incident.context_id == context_id)
+    if batch_id:
+        stmt = stmt.where(Incident.batch_id == batch_id)
+    incs = list(db.scalars(stmt))
+    clock, _ = context_clock(db, context_id, batch_id)
     prod = products_by_supplier(db)
     names = {s.supplier_id: s.name for s in suppliers}
     rows = []
@@ -326,7 +332,8 @@ def alert_dict(db: Session, al: Alert) -> dict:
     ver = db.get(ArticleVersion, art.current_version_id) if art else None
     an = current_analysis(db, art) if art else None
     a = next((x for x in an.assessments if x.supplier_id == al.supplier_id), None) if an else None
-    return {"id": al.id, "seq": al.seq, "incident_id": al.incident_id, "context_id": al.context_id, "supplier_id": al.supplier_id,
+    return {"id": al.id, "seq": al.seq, "incident_id": al.incident_id, "context_id": al.context_id, "batch_id": al.batch_id,
+            "batch_split": (db.get(ImportBatch, al.batch_id).split if al.batch_id else None), "supplier_id": al.supplier_id,
             "supplier_name": s.name if s else al.supplier_id, "revision": al.revision, "kind": al.kind, "priority": al.priority,
             "urgent": al.urgent, "sound_eligible": al.sound_eligible and bool(inc and inc.status == "active"),
             "status": al.status, "incident_status": inc.status if inc else None, "created_at": iso(al.created_at),

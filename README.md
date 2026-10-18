@@ -22,10 +22,11 @@ Flujo de un artículo (`app/pipeline.py`):
 
 Las respuestas de JEV se validan estrictamente (claves, tipos, rangos, opciones); una respuesta inválida o un error HTTP deja el análisis en `error` con flags `null`, **nunca** en N, y bloquea la exportación final hasta reintento o decisión manual explícita.
 
-### Contextos
+### Contextos y fuentes
 
-- **Ejercicio**: los cuatro Excel. Reloj lógico = fecha máxima de publicación analizada (o la que fije el presentador).
-- **Noticias reales**: RSS con fuente y fecha originales. Todo vínculo se muestra como *Exposición potencial de cartera simulada*.
+- **Ejercicio · archivos Excel (lo que se evalúa)**: los cuatro Excel. Cada lote (Entrenamiento, Validación, Test, LiveDay) es independiente: los incidentes y alertas nunca agrupan noticias de lotes distintos, y la barra superior permite ver un solo lote o todos. En este contexto no aparece nada del RSS (ni KPIs, ni tarjetas, ni avisos sonoros). Reloj lógico = fecha máxima de publicación analizada del lote (o la que fije el presentador).
+- **Noticias reales · RSS (pitch)**: RSS con fuente y fecha originales, fuera de la evaluación y de la exportación. Todo vínculo se muestra como *Exposición potencial de cartera simulada*.
+- La página **Fuentes** muestra ambos orígenes por separado; los avisos y el sonido solo se emiten para el contexto (y lote) que se está viendo.
 - El modo fixture (`DEMO_FIXTURES_ENABLED=true` y sin clave) etiqueta todo como «Modo fixture · Demostración de interfaz» y sus resultados no son exportables.
 
 ## Puesta en marcha local

@@ -262,6 +262,7 @@ class Incident(Base):
     __tablename__ = "incidents"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     context_id: Mapped[str] = mapped_column(String(32), index=True)
+    batch_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)  # lote Excel de origen; None en RSS
     supplier_id: Mapped[str] = mapped_column(String(32), index=True)
     event_type: Mapped[Optional[str]] = mapped_column(String(32))
     location: Mapped[Optional[str]] = mapped_column(String(200))
@@ -299,6 +300,7 @@ class Alert(Base):
     seq: Mapped[int] = mapped_column(BigInteger, Identity(), unique=True)
     incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id", ondelete="CASCADE"), index=True)
     context_id: Mapped[str] = mapped_column(String(32), index=True)
+    batch_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
     supplier_id: Mapped[str] = mapped_column(String(32))
     article_id: Mapped[Optional[str]] = mapped_column(String(36))
     revision: Mapped[int] = mapped_column(Integer)

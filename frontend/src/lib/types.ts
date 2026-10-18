@@ -330,6 +330,7 @@ export interface BatchProgress {
 
 export interface Overview {
   context_id: ContextId
+  batch_id: string | null
   context_label: string
   clock: string
   clock_kind: 'real' | 'logical' | 'presenter'
@@ -352,6 +353,8 @@ export interface Overview {
     linked_suppliers: number
     sources_operational: number
     sources_total: number
+    batches_analyzed: number
+    batches_total: number
   }
   ranking: SupplierRow[]
   latest: ArticleBrief[]
@@ -367,6 +370,8 @@ export interface Alert {
   seq: number
   incident_id: string
   context_id: ContextId
+  batch_id: string | null
+  batch_split: string | null
   supplier_id: string
   supplier_name: string
   revision: number
