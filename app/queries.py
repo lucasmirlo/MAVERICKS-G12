@@ -141,6 +141,8 @@ def incident_summary(db: Session, inc: Incident, clock: datetime, article_cache:
 
 
 def ranking(db: Session, context_id: str, batch_id: str | None = None) -> list[dict]:
+    from .policy import active_policy
+    policy = active_policy(db)
     suppliers = list(db.scalars(select(Supplier).order_by(Supplier.supplier_id)))
     stmt = select(Incident).where(Incident.context_id == context_id)
     if batch_id:
@@ -177,11 +179,26 @@ def ranking(db: Session, context_id: str, batch_id: str | None = None) -> list[d
             "historical_priority": max((i.peak_priority or 0 for i in mine), default=None) if mine else None,
             "last_evidence_at": iso(max((i.last_evidence_at for i in mine if i.last_evidence_at), default=None)),
             "reason": reason, "products": p["products"] if p else [], "products_mapped": bool(p and p["products"]),
+            **dependency_index(s, policy),
         })
     # Orden estable: prioridad descendente; incidentes sin prioridad calculable (revisión) justo después de los puntuados.
-    rows.sort(key=lambda r: (-(r["priority"] if r["priority"] is not None else 0.01 if r["priority_pending"] else -1),
-                             -r["active_incidents"], r["supplier_id"]))
+    # Con incidentes activos manda la prioridad; sin ellos, el índice de dependencia E.
+    rows.sort(key=lambda r: (-(r["priority"] if r["active_incidents"] and r["priority"] is not None else 0.01 if r["priority_pending"] else -1),
+                             -r["active_incidents"], -(r["dependency_index"] or 0), r["supplier_id"]))
     return rows
+
+
+def dependency_index(s: Supplier, policy: dict) -> dict:
+    """E (0–1) del proveedor sin evento: media ponderada de C, U, B (cobertura frente a lead time) y G."""
+    from . import scoring
+    try:
+        r = scoring.priority(policy, is_risk=False, severity=None, criticality=s.criticality, single_source=s.single_source,
+                             share_category_pct=s.share_category_pct, inventory_days=s.inventory_days, lead_days=s.lead_days,
+                             inventory_applicability=scoring.inventory_applicability(policy, s.category))
+    except ValueError:
+        return {"dependency_index": None, "dependency_factors": {}, "dependency_weights": policy["weights"]}
+    return {"dependency_index": r["exposure"], "dependency_factors": r["factors"], "dependency_contributions": r["contributions"],
+            "dependency_weights": policy["weights"]}
 
 
 # ---------------------------------------------------------------- artículos

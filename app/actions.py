@@ -128,13 +128,13 @@ def choose_actions(facts: dict, policy: dict) -> list[dict]:
 
     out: list[tuple[str, str]] = []
     if not urgent or (P is not None and threshold is not None and P < threshold):
-        out.append(("monitor", "Riesgo no urgente" if not urgent else f"Prioridad {P} por debajo del umbral {threshold}"))
+        out.append(("monitor", "Riesgo no urgente" if not urgent else f"Prioridad {_n(P)} por debajo del umbral {_n(threshold)}"))
     out.append(("contact_supplier", "Riesgo con vínculo confirmado"))
     if alt and not alt["afectado"]:
         out.append(("shift_to_alternate", f"Hay alternativo aprobado ({alt['nombre']}) sin incidente activo"))
     if physical and (urgent or duration is None or (cover is not None and duration > fraction * cover)):
         why = "Urgente" if urgent else ("Duración desconocida" if duration is None else
-                                        f"Duración {duration} días mayor que la mitad de la cobertura ({cover} días)")
+                                        f"Duración {_n(duration)} días mayor que la mitad de la cobertura ({_n(cover)} días)")
         out.append(("increase_safety_stock", why))
     if sup["fuente_unica"] and sup["criticidad"] == "High" and (urgent or prolonged_event):
         out.append(("start_dual_sourcing", "Fuente única de criticidad alta " + ("y urgente" if urgent else "con evento prolongado")))
@@ -143,7 +143,7 @@ def choose_actions(facts: dict, policy: dict) -> list[dict]:
     exceeds = duration is not None and cover is not None and duration > cover
     unknown_single = duration is None and sup["fuente_unica"]
     if urgent and (exceeds or unknown_single):
-        out.append(("escalate_planning", f"La parada ({duration} días) supera la cobertura ({cover} días)" if exceeds
+        out.append(("escalate_planning", f"La parada ({_n(duration)} días) supera la cobertura ({_n(cover)} días)" if exceeds
                     else "Duración desconocida con fuente única"))
     return [{"code": c, "label": ACTION_LABELS[c], "reason": r, "deadline": deadline(c)} for c, r in out]
 
@@ -152,14 +152,21 @@ def facts_hash(facts: dict, actions: list[dict]) -> str:
     return hashlib.sha256(json.dumps({"f": facts, "a": actions}, sort_keys=True, default=str).encode()).hexdigest()
 
 
+def _n(v) -> str:
+    """Número en formato español: 40 en lugar de 40.0; 35,9 con coma decimal."""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v).replace(".", ",") if isinstance(v, float) else str(v)
+
+
 def template_summary(facts: dict, actions: list[dict]) -> str:
     inc, sup, stock = facts["incidente"], facts["proveedor"], facts["stock"]
     ev = EVENT_LABELS.get(inc["tipo_evento"] or "", "un evento")
     parts = [f"{sup['nombre']} ({sup['ciudad']}, {sup['pais']}) está afectado por {ev}"
              + (f" desde el {spanish_date(inc['fecha_evento'])}" if inc["fecha_evento"] else "") + "."]
-    parts.append(f"Prioridad {inc['prioridad']} de 100" + (" y urgente." if inc["urgente"] else ", no urgente."))
+    parts.append(f"Prioridad {_n(inc['prioridad'])} de 100" + (" y urgente." if inc["urgente"] else ", no urgente."))
     if isinstance(stock["margen_dias"], (int, float)):
-        parts.append(f"Margen de stock: {stock['margen_dias']} días" + (f"; si la parada continúa, rotura estimada el {spanish_date(stock['fecha_rotura_si_continua'])}." if stock["fecha_rotura_si_continua"] else "."))
+        parts.append(f"Margen de stock: {_n(stock['margen_dias'])} días" + (f"; si la parada continúa, rotura estimada el {spanish_date(stock['fecha_rotura_si_continua'])}." if stock["fecha_rotura_si_continua"] else "."))
     else:
         parts.append(f"Margen de stock: {stock['margen_dias']}.")
     prods = facts["productos"]

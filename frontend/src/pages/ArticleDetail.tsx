@@ -3,6 +3,7 @@ import { ArrowLeft, ExternalLink, Sparkles } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RelevanceBadge } from '../components/ArticleItem'
+import { DecisionBadge, LlmReasoning } from '../components/Decision'
 import { Badge, Button, Card, CardHeader, ErrorState, Field, Loading, Notice, PriorityBadge, ProbBar, ReviewBadge, UrgencyBadge } from '../components/ui'
 import { api, ApiError } from '../lib/api'
 import { POLL_MS, useApp } from '../lib/app-state'
@@ -45,6 +46,7 @@ function AssessmentCard({ a, thresholds, potential }: { a: Assessment; threshold
             <Badge>{IMPACT_LABEL[a.impact_status]}</Badge>
             {a.needs_review && <ReviewBadge />}
             {a.sound_eligible && <Badge tone="urgent">Elegible para aviso sonoro</Badge>}
+            {a.accepted || a.doubtful ? <DecisionBadge source={a.decision_source} llmStatus={a.llm_status} /> : null}
           </div>
         </div>
         {a.is_risk === 'Y' && <PriorityBadge value={a.priority} band={a.priority_band} pending={a.priority === null} />}
@@ -61,6 +63,13 @@ function AssessmentCard({ a, thresholds, potential }: { a: Assessment; threshold
         <Field label="Duración explícita">{a.duration_days != null ? `${a.duration_is_lower_bound ? '≥ ' : ''}${fmtDays(a.duration_days)}` : 'No indicada'}</Field>
       </dl>
       {a.evidence.length > 0 && <p className="mt-3 rounded-lg bg-lavender p-2 text-sm">«{a.evidence[0].text}»</p>}
+      {a.doubtful && (
+        <p className="mt-2 text-xs text-ink-2">
+          Caso dudoso: regla de prioridad {a.urgent_rule ? 'urgente' : 'no urgente'} · JEV {a.jev_urgent ? 'urgente' : 'no urgente'}
+          {a.doubt_reasons.length ? ` · ${a.doubt_reasons.map((r) => ({ urgency_disagreement: 'regla y JEV discrepan', probability_in_review_band: 'probabilidad en zona 0,35–0,65', inferred_region_link: 'vínculo solo por región inferida' } as Record<string, string>)[r] ?? r).join(', ')}` : ''}
+        </p>
+      )}
+      <LlmReasoning decision={a.llm_decision} status={a.llm_status} />
       {a.explanation && <p className="mt-3 text-sm leading-relaxed">{a.explanation}</p>}
       {a.review_reasons.length > 0 && <p className="mt-2 text-xs text-review">Requiere revisión: {a.review_reasons.map(reviewLabel).join('; ')}.</p>}
       {presenter && meta?.generator_available && (

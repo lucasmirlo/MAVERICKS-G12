@@ -74,6 +74,49 @@ export interface SupplierRow {
   reason: { event_type: string | null; headline: string; article_id: string; published_at: string | null } | null
   products: string[]
   products_mapped: boolean
+  dependency_index: number | null
+  dependency_factors: Partial<Record<'C' | 'U' | 'B' | 'G', number>>
+  dependency_contributions?: Partial<Record<'C' | 'U' | 'B' | 'G', number>>
+  dependency_weights: Record<'C' | 'U' | 'B' | 'G', number>
+}
+
+export type DecisionSource = 'regla' | 'regla+jev' | 'llm' | 'humano'
+export type LlmStatus = 'no_necesaria' | 'pendiente' | 'hecha' | 'baja_confianza' | 'sin_segunda_opinion'
+export interface LlmDecision {
+  razonamiento?: string
+  vinculado?: boolean
+  es_riesgo?: boolean
+  urgente?: boolean
+  confianza?: 'alta' | 'media' | 'baja'
+  error?: string
+  message?: string
+  meta?: { model?: string; latency_ms?: number; input_tokens?: number; output_tokens?: number }
+}
+
+export interface PlanAction {
+  code: string
+  label: string
+  reason: string
+  deadline: 'hoy' | 'esta_semana' | 'proximo_informe'
+  deadline_label: string
+}
+
+export interface ActionPlan {
+  id: string
+  rules_version: string
+  actions: PlanAction[]
+  facts: {
+    incidente: { tipo_evento: string | null; urgente: boolean; prioridad: number | null; fecha_evento: string | null; duracion_dias: number | null; duracion_es_minima: boolean }
+    proveedor: { nombre: string; ciudad: string | null; pais: string | null; material: string | null; fuente_unica: boolean; criticidad: string | null; categoria: string | null }
+    stock: { margen_dias: number | string; plazo_reposicion_dias: number | null; fecha_rotura_si_continua: string | null }
+    productos: string[] | string
+    alternativo: { nombre: string; ciudad: string | null; pais: string | null; afectado: boolean } | null
+  }
+  summary: string
+  summary_source: 'template' | 'llm'
+  summary_error: string | null
+  drafts: { id: string; kind: 'supplier' | 'alternate'; language: string; subject: string; edited: boolean; target_supplier_id: string }[]
+  updated_at: string
 }
 
 export interface SupplierFull {
@@ -132,6 +175,14 @@ export interface Assessment {
   sound_eligible: boolean
   is_recovery: boolean
   link_basis: 'identity' | 'location_explicit' | 'inferred_region'
+  decision_source: DecisionSource | null
+  urgent_rule: boolean | null
+  jev_urgent: boolean | null
+  doubtful: boolean
+  doubt_reasons: string[]
+  llm_status: LlmStatus | null
+  llm_decision: LlmDecision | null
+  alternate_affected: boolean
   policy_version: string
   incident_id: string | null
   explanation?: string
@@ -164,6 +215,8 @@ export interface ArticleBrief {
   needs_review: boolean
   cached: boolean
   error_code: string | null
+  llm_pending?: boolean
+  decision_sources?: DecisionSource[]
 }
 
 export interface ArticleDetail extends ArticleBrief {
@@ -214,6 +267,7 @@ export interface Incident {
   revision: number
   requires_update: boolean
   article_count: number
+  plan: ActionPlan | null
   latest_article: { article_id: string; headline: string | null; source_name: string | null; published_at: string | null; url: string | null; news_id: string } | null
   history: { at: string; role: string; status: string; priority?: number | null; urgent?: YN; news_id?: string; article_id?: string; note?: string }[]
 }
@@ -393,6 +447,9 @@ export interface Alert {
   p_risk: number | null
   p_urgent: number | null
   priority_band: Band | null
+  decision_source: DecisionSource | null
+  llm_decision: LlmDecision | null
+  plan: ActionPlan | null
 }
 
 export interface AlertsResponse {

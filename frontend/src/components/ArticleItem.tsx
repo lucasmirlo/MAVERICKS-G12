@@ -46,7 +46,8 @@ export function ArticleItem({ a, compact }: { a: ArticleBrief; compact?: boolean
         {!compact && a.summary && <p className="mt-0.5 line-clamp-2 text-sm text-ink-2">{a.summary}</p>}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <RelevanceBadge relevance={a.relevance} />
-          {a.needs_review && <Badge tone="review">Requiere revisión</Badge>}
+          {a.llm_pending ? <Badge tone="review">En análisis (IA)</Badge> : a.needs_review && <Badge tone="review">Requiere revisión</Badge>}
+          {a.decision_sources?.includes('llm') && <Badge tone="accent">Decidido con IA</Badge>}
           {a.event_type && a.event_type !== 'not_relevant' && <Badge tone="accent">{EVENT_LABEL[a.event_type] ?? a.event_type}</Badge>}
           {a.affected_supplier_ids.length > 0 && (
             <span className="text-xs text-ink-2">

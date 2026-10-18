@@ -47,7 +47,7 @@ export default function Suppliers() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-xl font-bold sm:text-2xl">Proveedores</h1>
-        <p className="text-sm text-ink-2">Orden estable por prioridad activa (máximo de incidentes activos) y después por ID.</p>
+        <p className="text-sm text-ink-2">Con incidentes activos, orden por prioridad (máximo de sus incidentes); sin ellos, por índice de dependencia E (0–1: criticidad, fuente única, presión del buffer y concentración de gasto).</p>
       </div>
       <ContextBanner />
       <Card className="p-3 sm:p-4">

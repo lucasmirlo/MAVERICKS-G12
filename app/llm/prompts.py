@@ -31,7 +31,8 @@ Reglas:
   gravedad, duración y dependencia (fuente única, alternativo, criticidad, cobertura frente a plazo de reposición).
   `prioridad.P` y `prioridad.umbral_urgencia` son orientativos; la decisión es tuya.
 - `confianza`: "alta" si la evidencia es clara, "media" si es razonable pero incompleta, "baja" si no puedes decidir.
-- `razonamiento`: 2 a 4 frases en español que citen la evidencia de la noticia. No inventes datos.
+- `razonamiento`: 2 a 4 frases en español, para un comprador, que citen la evidencia de la noticia. No inventes datos
+  ni menciones nombres de campos JSON ni valores como 'Y'/'N'.
 Responde únicamente con el objeto JSON pedido, con `razonamiento` como primer campo."""
 
 PLAN_SYSTEM = """Redactas el resumen de un plan de acción de compras para Helixa Pharmaceuticals (ficticia).

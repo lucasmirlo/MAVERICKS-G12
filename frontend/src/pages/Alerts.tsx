@@ -4,6 +4,8 @@ import clsx from 'clsx'
 import { BellOff, Check, CheckCheck, ShieldCheck, Volume2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ActionPlanCard } from '../components/ActionPlanCard'
+import { DecisionBadge, LlmReasoning } from '../components/Decision'
 import { SoundControl } from '../components/Shell'
 import { Badge, Button, Card, EmptyState, ErrorState, Loading, Notice, PriorityBadge, ReviewBadge } from '../components/ui'
 import { api, ApiError, qs } from '../lib/api'
@@ -112,6 +114,7 @@ export default function Alerts() {
                       {a.incident_status === 'resolved' && <Badge tone="ok">Incidente resuelto</Badge>}
                       {a.revision > 1 && <Badge tone="accent">Revisión {a.revision}</Badge>}
                       {a.sound_eligible ? <Badge tone="urgent" icon={<Volume2 className="size-3" aria-hidden />}>Sonora</Badge> : <Badge>Solo visual</Badge>}
+                      <DecisionBadge source={a.decision_source} />
                       <Badge>{a.context_id === 'rss' ? 'Noticias reales · exposición potencial' : `Ejercicio · ${SPLIT_LABEL[a.batch_split ?? ''] ?? 'Excel'}`}</Badge>
                     </div>
                     <Link to={`/proveedores/${a.supplier_id}`} className="mt-1 block font-semibold hover:text-accent-strong hover:underline">{a.supplier_name} ({a.supplier_id})</Link>
@@ -122,6 +125,15 @@ export default function Alerts() {
                   </div>
                   <PriorityBadge value={a.priority} band={a.priority_band} />
                 </div>
+                {a.decision_source === 'llm' && <LlmReasoning decision={a.llm_decision} />}
+                {a.plan && a.incident_status !== 'resolved' && (
+                  <details className="group mt-2" open={a.status === 'unread' && a.urgent === 'Y'}>
+                    <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-accent-strong">
+                      Plan de acción ({a.plan.actions.length} acciones)
+                    </summary>
+                    <ActionPlanCard plan={a.plan} />
+                  </details>
+                )}
                 {a.incident_status !== 'resolved' && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {a.status === 'unread' && (presenter ? (

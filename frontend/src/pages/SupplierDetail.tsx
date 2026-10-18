@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Boxes, ExternalLink, FileText, History, Mail, PackageSearch, Quote, ShieldCheck, Timer } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ActionPlanCard } from '../components/ActionPlanCard'
 import { DraftDialog } from '../components/DraftDialog'
 import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { Badge, Button, Card, CardHeader, EmptyState, ErrorState, Field, Loading, PriorityBadge, ReviewBadge, UrgencyBadge } from '../components/ui'
@@ -34,6 +35,7 @@ function IncidentCard({ inc, context }: { inc: Incident; context: string }) {
           {inc.latest_article.headline}
         </Link>
       )}
+      {!resolved && inc.plan && <ActionPlanCard plan={inc.plan} />}
       <details className="mt-2 text-xs">
         <summary className="cursor-pointer font-semibold text-ink-2">Historial ({inc.history.length})</summary>
         <ol className="mt-1 space-y-1 border-l-2 border-lavender-strong pl-3">

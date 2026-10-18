@@ -1,9 +1,28 @@
 import { ChevronRight, Clock3, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../lib/app-state'
-import { CRIT_LABEL, EVENT_LABEL, fmtPub } from '../lib/format'
+import { CRIT_LABEL, EVENT_LABEL, FACTOR_LABEL, fmtNum, fmtPub } from '../lib/format'
 import type { SupplierRow } from '../lib/types'
 import { Badge, PriorityBadge, ReviewBadge, UrgencyBadge } from './ui'
+
+export function DependencyMeter({ row, compact }: { row: SupplierRow; compact?: boolean }) {
+  const e = row.dependency_index
+  if (e === null || e === undefined) return <span className="text-xs text-ink-2">—</span>
+  const parts = (['C', 'U', 'B', 'G'] as const)
+    .filter((k) => row.dependency_factors[k] !== undefined)
+    .map((k) => `${FACTOR_LABEL[k]} ${fmtNum(row.dependency_factors[k]!, 2)} (peso ${fmtNum(row.dependency_weights[k], 2)})`)
+  const omitted = (['C', 'U', 'B', 'G'] as const).filter((k) => row.dependency_factors[k] === undefined).map((k) => FACTOR_LABEL[k])
+  const title = `Índice de dependencia E = media ponderada de: ${parts.join('; ')}${omitted.length ? `. Omitidos: ${omitted.join(', ')}` : ''}`
+  return (
+    <span className="inline-flex items-center gap-2" title={title} aria-label={`Índice de dependencia ${fmtNum(e, 2)} de 1. ${title}`}>
+      <span className="h-1.5 w-14 rounded-full bg-line" aria-hidden>
+        <span className="block h-1.5 rounded-full bg-accent" style={{ width: `${Math.min(100, e * 100)}%` }} />
+      </span>
+      <span className="tabular text-xs font-semibold text-ink">{fmtNum(e, 2)}</span>
+      {!compact && <span className="hidden text-[11px] text-ink-2 xl:inline">{(['C', 'U', 'B', 'G'] as const).filter((k) => row.dependency_factors[k] !== undefined).map((k) => `${k} ${fmtNum(row.dependency_factors[k]!, 2)}`).join(' · ')}</span>}
+    </span>
+  )
+}
 
 function Reason({ row }: { row: SupplierRow }) {
   if (!row.reason) {
@@ -52,6 +71,7 @@ export function SupplierCards({ rows }: { rows: SupplierRow[] }) {
           <p className="mt-2 text-sm">
             <Reason row={r} />
           </p>
+          <p className="mt-1 flex items-center gap-2 text-xs text-ink-2">Índice de dependencia <DependencyMeter row={r} compact /></p>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <Flags row={r} />
             <Link
@@ -82,6 +102,7 @@ export function SupplierTable({ rows, caption }: { rows: SupplierRow[]; caption:
             <th scope="col" className="px-2 py-2 font-semibold">Estado</th>
             <th scope="col" className="px-2 py-2 font-semibold">Criticidad</th>
             <th scope="col" className="px-2 py-2 font-semibold">Fuente única</th>
+            <th scope="col" className="px-2 py-2 font-semibold" title="E de 0 a 1: criticidad, fuente única, presión del buffer y concentración de gasto">Índice de dependencia</th>
             <th scope="col" className="px-2 py-2 font-semibold">Evidencia</th>
           </tr>
         </thead>
@@ -108,6 +129,7 @@ export function SupplierTable({ rows, caption }: { rows: SupplierRow[]; caption:
               </td>
               <td className="px-2 py-2.5">{CRIT_LABEL[r.criticality ?? ''] ?? '—'}</td>
               <td className="px-2 py-2.5">{r.single_source === 'Y' ? <Badge tone="accent">Sí</Badge> : 'No'}</td>
+              <td className="px-2 py-2.5"><DependencyMeter row={r} /></td>
               <td className="tabular whitespace-nowrap px-2 py-2.5 text-xs text-ink-2">{r.reason?.published_at ? fmtPub(r.reason.published_at, contextId) : '—'}</td>
             </tr>
           ))}
