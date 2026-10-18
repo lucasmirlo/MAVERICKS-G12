@@ -1,0 +1,36 @@
+{
+  "origin": "synthetic_not_challenge",
+  "article": {
+    "news_id": "EX_REFERENCE",
+    "published_date": "2026-10-16",
+    "source": "Synthetic contract fixture",
+    "headline": "Aster Labs reports a production fire",
+    "summary": "Aster Labs confirmed that a fire halted production at its fictional plant. The shutdown is expected to last 45 days.",
+    "language": "en",
+    "context_id": "synthetic_fixture"
+  },
+  "suppliers": [
+    {
+      "supplier_id": "EXS01",
+      "name": "Aster Labs",
+      "country": "Example Country",
+      "city": "Example City",
+      "category": "API",
+      "material": "Example active ingredient",
+      "criticality": "High",
+      "single_source": "Y",
+      "alternate_id": null,
+      "lead_days": 90,
+      "inventory_days": 30,
+      "share_category_pct": 40
+    }
+  ],
+  "duration_candidates": [
+    {
+      "id": "d1",
+      "text": "45 days",
+      "days": 45,
+      "is_lower_bound": false
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "model": "jev-1.13.0",
+  "state": {
+    "article": {
+      "news_id": "EX_REFERENCE",
+      "published_date": "2026-10-16",
+      "source": "Synthetic contract fixture",
+      "headline": "Aster Labs reports a production fire",
+      "summary": "Aster Labs confirmed that a fire halted production at its fictional plant. The shutdown is expected to last 45 days.",
+      "language": "en",
+      "context_id": "synthetic_fixture"
+    },
+    "suppliers": [
+      {
+        "supplier_id": "EXS01",
+        "name": "Aster Labs",
+        "country": "Example Country",
+        "city": "Example City",
+        "category": "API",
+        "material": "Example active ingredient",
+        "criticality": "High",
+        "single_source": "Y",
+        "alternate_id": null,
+        "lead_days": 90,
+        "inventory_days": 30,
+        "share_category_pct": 40
+      }
+    ],
+    "evidence_spans": [
+      {
+        "id": "e1",
+        "field": "headline",
+        "start": 0,
+        "end": 36,
+        "text": "Aster Labs reports a production fire"
+      },
+      {
+        "id": "e2",
+        "field": "summary",
+        "start": 0,
+        "end": 74,
+        "text": "Aster Labs confirmed that a fire halted production at its fictional plant."
+      },
+      {
+        "id": "e3",
+        "field": "summary",
+        "start": 75,
+        "end": 116,
+        "text": "The shutdown is expected to last 45 days."
+      }
+    ],
+    "duration_candidates": [
+      {
+        "id": "d1",
+        "text": "45 days",
+        "days": 45,
+        "is_lower_bound": false
+      }
+    ]
+  },
+  "questions": {
+    "risk_EXS01": {
+      "type": "noul",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: does this news threaten supply to Helixa? Distinguish positive news, unrelated namesakes and harmless local news from supply threats. Watch-list strategic threats may be risks without being urgent."
+    },
+    "urgent_EXS01": {
+      "type": "noul",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: does this supply threat require immediate procurement attention because it can stop or seriously delay supply soon? Consider actual operational impact, timing, source dependence, criticality and inventory. A minor, short or slow-moving impact can wait. No risk implies no urgency. Do not use alarming words alone."
+    },
+    "severity_EXS01": {
+      "type": "score",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: rate the severity of the operational event affecting this supplier. Rate the event itself; do not count single-source, spend or criticality again.",
+      "criteria": [
+        "1: No operational interruption described; negligible immediate effect.",
+        "2: Small administrative or organisational change; operations continue.",
+        "3: Limited local friction or very short delay with normal output mostly maintained.",
+        "4: Meaningful warning or disruption affecting a limited activity, with no serious stoppage established.",
+        "5: Partial production or delivery disruption with a credible material effect.",
+        "6: Substantial capacity or logistics constraint; notable supply delays likely from the event.",
+        "7: Major operational disruption affecting a significant production or delivery function.",
+        "8: Production or shipments halted in the affected operation; recovery is consequential or uncertain.",
+        "9: Severe sustained shutdown, prohibition or failure threatening continued deliveries.",
+        "10: Extreme disruption such as destruction or imminent cessation with no credible near-term operating continuity."
+      ]
+    },
+    "impact_state_EXS01": {
+      "type": "choice",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: select the current impact state, based only on the source and reference date.",
+      "criteria": {
+        "active": "Disruption is ongoing or impending soon.",
+        "monitoring": "A slower or limited threat merits monitoring without established immediate interruption.",
+        "resolved": "Source reports restoration or end of the relevant disruption.",
+        "positive": "A favourable development without a current threat.",
+        "unrelated": "No relevant operational event or connection.",
+        "unclear": "Evidence is insufficient or conflicting."
+      }
+    },
+    "evidence_EXS01": {
+      "type": "choice",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: select the verbatim passage that best supports the connection and impact. Do not assume another question answer.",
+      "criteria": {
+        "e1": "Aster Labs reports a production fire",
+        "e2": "Aster Labs confirmed that a fire halted production at its fictional plant.",
+        "e3": "The shutdown is expected to last 45 days.",
+        "none": "No passage supports this supplier-specific conclusion."
+      }
+    },
+    "duration_EXS01": {
+      "type": "choice",
+      "instructions": "For supplier EXS01 (Aster Labs) in state.suppliers, using state.article and supplier context: select an explicit duration of the relevant disruption from the supplied candidates. Use unknown for indefinite periods, missing duration, or numbers about another event.",
+      "criteria": {
+        "unknown": "No explicit, usable duration of supply disruption in the source.",
+        "d1": {
+          "text": "45 days",
+          "days": 45
+        }
+      }
+    }
+  }
+}

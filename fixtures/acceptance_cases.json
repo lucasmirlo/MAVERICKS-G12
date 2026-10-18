@@ -1,0 +1,117 @@
+{
+  "origin": "author_created_test_scenarios_not_challenge_answers",
+  "cases": [
+    {
+      "id": "EX01",
+      "description": "Positive supplier announcement retains identity",
+      "headline": "Aster Labs expands its approved production line",
+      "summary": "Aster Labs announced an additional production line. Existing deliveries continue as planned.",
+      "expected_behaviour": [
+        "supplier remains linked",
+        "Is_Risk=N",
+        "Urgent=N",
+        "priority=0"
+      ]
+    },
+    {
+      "id": "EX02",
+      "description": "Look-alike organisation",
+      "headline": "Aster Football Club wins local tournament",
+      "summary": "The sports club celebrated its final match.",
+      "expected_behaviour": [
+        "do not match Aster Labs by first word",
+        "no alarm"
+      ]
+    },
+    {
+      "id": "EX03",
+      "description": "Regional exposure supports several suppliers",
+      "headline": "Flood closes industrial parks in a named city",
+      "summary": "The article explicitly identifies a manufacturing area and road closures. Two fictional test suppliers have sites there; one is elsewhere.",
+      "expected_behaviour": [
+        "multiple matching suppliers allowed",
+        "exclude other city",
+        "pair-specific scores"
+      ]
+    },
+    {
+      "id": "EX04",
+      "description": "Same city without relevant impact",
+      "headline": "City centre theatre reopens",
+      "summary": "The renovation has finished. No industrial operations or transport restrictions are mentioned.",
+      "expected_behaviour": [
+        "no operational exposure from city match alone"
+      ]
+    },
+    {
+      "id": "EX05",
+      "description": "Unknown physical inventory",
+      "expected_behaviour": [
+        "omit B",
+        "review flag",
+        "no automatic sound"
+      ]
+    },
+    {
+      "id": "EX06",
+      "description": "Logistics with inventory not applicable",
+      "expected_behaviour": [
+        "omit B and renormalize",
+        "no invented stock days"
+      ]
+    },
+    {
+      "id": "EX07",
+      "description": "A recovery arrives after the incident",
+      "expected_behaviour": [
+        "resolve only matching incident",
+        "retain historical score",
+        "do not trigger urgent recovery alarm"
+      ]
+    },
+    {
+      "id": "EX08",
+      "description": "Duplicate URL with changed text",
+      "expected_behaviour": [
+        "one article identity",
+        "new content version",
+        "re-evaluate changed evidence"
+      ]
+    },
+    {
+      "id": "EX09",
+      "description": "JEV authentication failure",
+      "expected_behaviour": [
+        "analysis_status=error",
+        "risk flags null",
+        "export final blocked",
+        "no retries with same bad key"
+      ]
+    },
+    {
+      "id": "EX10",
+      "description": "Browser audio not armed",
+      "expected_behaviour": [
+        "visual alert visible",
+        "offer Activar sonido",
+        "no false claim of sound delivered"
+      ]
+    },
+    {
+      "id": "EX11",
+      "description": "Minor known disruption despite single-source",
+      "expected_behaviour": [
+        "do not label urgent from single-source alone",
+        "justify duration and impact"
+      ]
+    },
+    {
+      "id": "EX12",
+      "description": "Old incident article delivered after recovery",
+      "expected_behaviour": [
+        "store source",
+        "do not reopen resolved incident solely by ingestion order"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "version": "1.0.0",
+  "status": "inferred",
+  "provenance": "Conocimiento geográfico general preparado para toda la cartera (no derivado de noticias de validación, test ni LiveDay). Country y City proceden del Excel; región, río, puerto y rutas son inferencias no verificadas por instalación.",
+  "cities": {
+    "Hyderabad|India": {
+      "region": "Telangana, southern India",
+      "features": [
+        "pharmaceutical manufacturing hub"
+      ]
+    },
+    "Ahmedabad|India": {
+      "region": "Gujarat, western India",
+      "features": [
+        "Gujarat industrial and chemical belt"
+      ]
+    },
+    "Taizhou|China": {
+      "region": "Zhejiang province, eastern China",
+      "features": [
+        "chemical and pharmaceutical industrial parks",
+        "East China Sea coast"
+      ]
+    },
+    "Basel|Switzerland": {
+      "region": "Basel region, Switzerland, bordering France and Germany",
+      "features": [
+        "on the Rhine river",
+        "Rhine river port",
+        "life-sciences cluster"
+      ]
+    },
+    "Wuhan|China": {
+      "region": "Hubei province, central China",
+      "features": [
+        "on the Yangtze river"
+      ]
+    },
+    "Shanghai|China": {
+      "region": "Shanghai municipality, eastern China",
+      "features": [
+        "Port of Shanghai",
+        "Yangtze river delta"
+      ]
+    },
+    "Cork|Ireland": {
+      "region": "County Cork, southern Ireland",
+      "features": [
+        "biopharma manufacturing cluster",
+        "Port of Cork"
+      ]
+    },
+    "Ludwigshafen|Germany": {
+      "region": "Rhineland-Palatinate, western Germany",
+      "features": [
+        "on the Rhine river",
+        "large chemical industrial complex"
+      ]
+    },
+    "Milan|Italy": {
+      "region": "Lombardy, northern Italy",
+      "features": []
+    },
+    "Valencia|Spain": {
+      "region": "Valencian Community, eastern Spain",
+      "features": [
+        "Port of Valencia",
+        "Mediterranean coast"
+      ]
+    },
+    "Oslo|Norway": {
+      "region": "Eastern Norway",
+      "features": [
+        "Oslofjord"
+      ]
+    },
+    "Kaohsiung|Taiwan": {
+      "region": "southern Taiwan",
+      "features": [
+        "Port of Kaohsiung",
+        "petrochemical industry"
+      ]
+    },
+    "Vadodara|India": {
+      "region": "Gujarat, western India",
+      "features": [
+        "Gujarat industrial and chemical belt"
+      ]
+    },
+    "Mainz|Germany": {
+      "region": "Rhineland-Palatinate, western Germany",
+      "features": [
+        "on the Rhine river"
+      ]
+    },
+    "Bergamo|Italy": {
+      "region": "Lombardy, northern Italy",
+      "features": []
+    },
+    "Lancaster|USA": {
+      "region": "Pennsylvania, north-eastern USA",
+      "features": []
+    },
+    "Barcelona|Spain": {
+      "region": "Catalonia, north-eastern Spain",
+      "features": [
+        "Port of Barcelona",
+        "Mediterranean coast"
+      ]
+    },
+    "Lodz|Poland": {
+      "region": "Lodz Voivodeship, central Poland",
+      "features": []
+    },
+    "Osaka|Japan": {
+      "region": "Kansai region, Japan",
+      "features": [
+        "Port of Osaka",
+        "Osaka Bay"
+      ]
+    },
+    "Monterrey|Mexico": {
+      "region": "Nuevo Leon, northern Mexico",
+      "features": [
+        "US-Mexico road freight corridor"
+      ]
+    },
+    "Antwerp|Belgium": {
+      "region": "Flanders, Belgium",
+      "features": [
+        "Port of Antwerp-Bruges",
+        "Scheldt river"
+      ]
+    },
+    "Dublin|Ireland": {
+      "region": "County Dublin, eastern Ireland",
+      "features": [
+        "Dublin Port"
+      ]
+    },
+    "Hangzhou|China": {
+      "region": "Zhejiang province, eastern China",
+      "features": []
+    },
+    "San Juan|Puerto Rico (USA)": {
+      "region": "Puerto Rico, Caribbean",
+      "features": [
+        "Caribbean hurricane zone",
+        "island grid and port dependence"
+      ]
+    },
+    "Zurich|Switzerland": {
+      "region": "Canton of Zurich, Switzerland",
+      "features": []
+    },
+    "Hsinchu|Taiwan": {
+      "region": "northern Taiwan",
+      "features": [
+        "Hsinchu Science Park"
+      ]
+    },
+    "Darmstadt|Germany": {
+      "region": "Hesse, Germany",
+      "features": [
+        "Rhine-Main area"
+      ]
+    },
+    "Boston|USA": {
+      "region": "Massachusetts, north-eastern USA",
+      "features": []
+    },
+    "Rotterdam|Netherlands": {
+      "region": "South Holland, Netherlands",
+      "features": [
+        "Port of Rotterdam",
+        "Rhine-Meuse delta",
+        "European container and chemical hub"
+      ]
+    },
+    "Singapore|Singapore": {
+      "region": "Singapore",
+      "features": [
+        "Port of Singapore",
+        "Strait of Malacca"
+      ]
+    },
+    "Xi'an|China": {
+      "region": "Shaanxi province, north-western China",
+      "features": [
+        "China-Europe rail freight hub"
+      ]
+    },
+    "Bengaluru|India": {
+      "region": "Karnataka, southern India",
+      "features": []
+    },
+    "Madrid|Spain": {
+      "region": "Community of Madrid, central Spain",
+      "features": []
+    },
+    "Sao Paulo|Brazil": {
+      "region": "Sao Paulo state, south-eastern Brazil",
+      "features": [
+        "Port of Santos access"
+      ]
+    },
+    "Ho Chi Minh City|Vietnam": {
+      "region": "southern Vietnam",
+      "features": [
+        "Mekong delta area",
+        "Saigon port"
+      ]
+    },
+    "Tangier|Morocco": {
+      "region": "Tanger-Tetouan-Al Hoceima, northern Morocco",
+      "features": [
+        "Tanger Med port",
+        "Strait of Gibraltar"
+      ]
+    },
+    "Cologne|Germany": {
+      "region": "North Rhine-Westphalia, western Germany",
+      "features": [
+        "on the Rhine river",
+        "chemical industry cluster"
+      ]
+    }
+  },
+  "service_scope": {
+    "Temperature-controlled road freight (EU)": "road haulage across EU countries; exposed to road, border, fuel and trucker disruptions in the EU countries it serves, not only its home city",
+    "Asia to Europe sea freight": "container shipping between Asia and Europe via the Strait of Malacca, Indian Ocean, Red Sea and Suez Canal (alternative route around the Cape of Good Hope)",
+    "Asia to Europe rail freight": "China-Europe rail freight through Central Asia and Eastern Europe border crossings"
+  }
+}

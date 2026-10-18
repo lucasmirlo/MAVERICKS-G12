@@ -1,0 +1,238 @@
+{
+  "checked_at": "2026-10-16T18:51:53.847411+00:00",
+  "status": "passed",
+  "reference_tests_run": 16,
+  "checks": [
+    {
+      "name": "required_deliverables",
+      "status": "passed"
+    },
+    {
+      "name": "all_json_parse",
+      "status": "passed"
+    },
+    {
+      "name": "answer_key_excluded",
+      "status": "passed"
+    },
+    {
+      "name": "input_manifest_exact",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/supplier_training.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/supplier_validation.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/supplier_test.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/supplier_liveday.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/brief_original.docx",
+      "status": "passed"
+    },
+    {
+      "name": "sha256:inputs/challenge_brief.png",
+      "status": "passed"
+    },
+    {
+      "name": "weights_sum_one",
+      "status": "passed"
+    },
+    {
+      "name": "severity_has_ten_levels",
+      "status": "passed"
+    },
+    {
+      "name": "model_version_pinned",
+      "status": "passed"
+    },
+    {
+      "name": "six_unique_rss",
+      "status": "passed"
+    },
+    {
+      "name": "rss_matches_recorded_checks",
+      "status": "passed"
+    },
+    {
+      "name": "empty_secrets",
+      "status": "passed"
+    },
+    {
+      "name": "schema_and_valid_fixture",
+      "status": "passed"
+    },
+    {
+      "name": "schema_rejects_out_of_range",
+      "status": "passed"
+    },
+    {
+      "name": "schema_rejects_urgent_nonrisk",
+      "status": "passed"
+    },
+    {
+      "name": "schema_rejects_error_as_success",
+      "status": "passed"
+    },
+    {
+      "name": "model:jev_stage_a_request.json",
+      "status": "passed"
+    },
+    {
+      "name": "unlabelled:jev_stage_a_request.json",
+      "status": "passed"
+    },
+    {
+      "name": "model:jev_stage_b_request.json",
+      "status": "passed"
+    },
+    {
+      "name": "unlabelled:jev_stage_b_request.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:config/risk_policy.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:config/rss_sources.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:evidence/input_manifest.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:config/rss_sources.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:config/risk_policy.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:docs/05_DISENO_E_INTERACCION.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:prompts/02_DISENO_UI.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:01_PROMPT_MAESTRO_CODEX.md:prompts/03_AUDITORIA_Y_ENTREGA.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:prompts/03_AUDITORIA_Y_ENTREGA.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/07_ACEPTACION_Y_DEMO.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/02_ESPECIFICACION.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/03_MOTOR_RIESGO.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/04_JEV_Y_RSS.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/05_DISENO_E_INTERACCION.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/06_RAILWAY.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/07_ACEPTACION_Y_DEMO.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:docs/08_FUENTES_Y_VERIFICACION.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:00_LEEME.md:config/risk_policy.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/04_JEV_Y_RSS.md:reference/jev_requests.py",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/04_JEV_Y_RSS.md:config/rss_sources.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/04_JEV_Y_RSS.md:evidence/rss_verification.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/04_JEV_Y_RSS.md:prompts/04_TEXTOS_Y_BORRADORES.md",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/07_ACEPTACION_Y_DEMO.md:reference/test_scoring.py",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/08_FUENTES_Y_VERIFICACION.md:evidence/rss_verification.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/08_FUENTES_Y_VERIFICACION.md:config/rss_sources.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/03_MOTOR_RIESGO.md:config/risk_policy.json",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/03_MOTOR_RIESGO.md:reference/scoring.py",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/02_ESPECIFICACION.md:inputs/supplier_training.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/02_ESPECIFICACION.md:inputs/supplier_validation.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/02_ESPECIFICACION.md:inputs/supplier_test.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "reference:docs/02_ESPECIFICACION.md:inputs/supplier_liveday.xlsx",
+      "status": "passed"
+    },
+    {
+      "name": "reference_tests",
+      "status": "passed"
+    }
+  ],
+  "not_tested": [
+    "authenticated_jev",
+    "railway_deployment",
+    "app_e2e",
+    "device_audio",
+    "challenge_predictions"
+  ]
+}

@@ -1,0 +1,5 @@
+.claude
+evaluation/runs
+export_*.xlsx
+*.log
+data

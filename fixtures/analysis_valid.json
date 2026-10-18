@@ -1,0 +1,70 @@
+{
+  "article_id": "synthetic-reference-001",
+  "news_id": "EX_REFERENCE",
+  "context_id": "synthetic_fixture",
+  "analysis_status": "done",
+  "is_risk": "Y",
+  "urgent": "Y",
+  "affected_supplier_ids": [
+    "EXS01"
+  ],
+  "assessments": [
+    {
+      "supplier_id": "EXS01",
+      "p_link": 0.98,
+      "p_risk": 0.97,
+      "p_urgent": 0.93,
+      "is_risk": "Y",
+      "urgent": "Y",
+      "severity": 9,
+      "severity_confidence": 0.9,
+      "priority": 83.6,
+      "priority_band": "critical",
+      "impact_status": "active",
+      "needs_review": false,
+      "review_reasons": [],
+      "evidence_ids": [
+        "e1",
+        "e2"
+      ],
+      "factor_values": {
+        "C": 1.0,
+        "U": 1.0,
+        "G": 0.4,
+        "B": 0.6666666666666666
+      },
+      "policy_version": "1.0.0",
+      "duration_days": 45,
+      "duration_is_lower_bound": false
+    }
+  ],
+  "model_id": "jev-1.13.0",
+  "question_version": "1.0.0",
+  "policy_version": "1.0.0",
+  "error": null,
+  "event_type": "fire_incident",
+  "evidence": [
+    {
+      "id": "e1",
+      "field": "headline",
+      "start": 0,
+      "end": 36,
+      "text": "Aster Labs reports a production fire"
+    },
+    {
+      "id": "e2",
+      "field": "summary",
+      "start": 0,
+      "end": 74,
+      "text": "Aster Labs confirmed that a fire halted production at its fictional plant."
+    },
+    {
+      "id": "e3",
+      "field": "summary",
+      "start": 75,
+      "end": 116,
+      "text": "The shutdown is expected to last 45 days."
+    }
+  ],
+  "review_reasons": []
+}

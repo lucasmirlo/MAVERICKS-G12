@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "poll_seconds": 300,
+  "timeout_seconds": 10,
+  "max_response_bytes": 4000000,
+  "max_new_items_per_source_poll": 10,
+  "initial_lookback_hours": 48,
+  "daily_analysis_budget": 100,
+  "sources": [
+    {
+      "id": "biopharma_dive",
+      "name": "BioPharma Dive",
+      "url": "https://www.biopharmadive.com/feeds/news/",
+      "language": "en",
+      "topic": "pharma",
+      "enabled": true,
+      "discovery_url": "https://www.biopharmadive.com/",
+      "verified_on": "2026-10-16"
+    },
+    {
+      "id": "supply_chain_dive",
+      "name": "Supply Chain Dive",
+      "url": "https://www.supplychaindive.com/feeds/news/",
+      "language": "en",
+      "topic": "logistics",
+      "enabled": true,
+      "discovery_url": "https://www.supplychaindive.com/",
+      "verified_on": "2026-10-16"
+    },
+    {
+      "id": "the_loadstar",
+      "name": "The Loadstar",
+      "url": "https://theloadstar.com/feed/",
+      "language": "en",
+      "topic": "logistics",
+      "enabled": true,
+      "discovery_url": "https://theloadstar.com/",
+      "verified_on": "2026-10-16"
+    },
+    {
+      "id": "gdacs",
+      "name": "GDACS",
+      "url": "https://www.gdacs.org/xml/rss.xml",
+      "language": "en",
+      "topic": "disasters",
+      "enabled": true,
+      "discovery_url": "https://www.gdacs.org/documents/2025/GDACS_MHEWS_guide.pdf",
+      "verified_on": "2026-10-16"
+    },
+    {
+      "id": "ema",
+      "name": "EMA",
+      "url": "https://www.ema.europa.eu/en/news.xml",
+      "language": "en",
+      "topic": "regulatory",
+      "enabled": true,
+      "discovery_url": "https://www.ema.europa.eu/en/rss-feeds",
+      "verified_on": "2026-10-16"
+    },
+    {
+      "id": "el_pais",
+      "name": "EL PAIS Internacional",
+      "url": "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/internacional/portada",
+      "language": "es",
+      "topic": "general",
+      "enabled": true,
+      "discovery_url": "https://elpais.com/info/rss/",
+      "verified_on": "2026-10-16"
+    }
+  ]
+}

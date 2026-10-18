@@ -1,0 +1,21 @@
+{
+  "checked_date": "2026-10-16",
+  "documentation_url": "https://docs.railway.com/config-as-code/reference",
+  "files": [
+    "config/railway.web.json",
+    "config/railway.worker.json"
+  ],
+  "documented_fields_reviewed": [
+    "builder",
+    "dockerfilePath",
+    "preDeployCommand",
+    "startCommand",
+    "healthcheckPath",
+    "healthcheckTimeout",
+    "restartPolicyType",
+    "restartPolicyMaxRetries"
+  ],
+  "json_syntax": "valid",
+  "live_schema_validation": "not_completed_http_403_on_schema_download",
+  "deployment_tested": false
+}

@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supplier-risk-radar.example/contracts/article-analysis.schema.json",
+  "title": "Article analysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "article_id",
+    "news_id",
+    "context_id",
+    "analysis_status",
+    "is_risk",
+    "urgent",
+    "affected_supplier_ids",
+    "assessments",
+    "model_id",
+    "question_version",
+    "policy_version",
+    "error",
+    "event_type",
+    "evidence",
+    "review_reasons"
+  ],
+  "properties": {
+    "article_id": {
+      "type": "string"
+    },
+    "news_id": {
+      "type": "string"
+    },
+    "context_id": {
+      "type": "string"
+    },
+    "analysis_status": {
+      "enum": [
+        "done",
+        "review",
+        "error"
+      ]
+    },
+    "is_risk": {
+      "enum": [
+        "Y",
+        "N",
+        null
+      ]
+    },
+    "urgent": {
+      "enum": [
+        "Y",
+        "N",
+        null
+      ]
+    },
+    "affected_supplier_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "supplier_id",
+          "p_link",
+          "p_risk",
+          "p_urgent",
+          "is_risk",
+          "urgent",
+          "severity",
+          "priority",
+          "priority_band",
+          "impact_status",
+          "needs_review",
+          "review_reasons",
+          "evidence_ids",
+          "factor_values",
+          "policy_version"
+        ],
+        "properties": {
+          "supplier_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "p_link": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "p_risk": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "p_urgent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "is_risk": {
+            "enum": [
+              "Y",
+              "N"
+            ]
+          },
+          "urgent": {
+            "enum": [
+              "Y",
+              "N"
+            ]
+          },
+          "severity": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "severity_confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "priority_band": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical",
+              null
+            ]
+          },
+          "impact_status": {
+            "enum": [
+              "active",
+              "monitoring",
+              "resolved",
+              "positive",
+              "unrelated",
+              "unclear"
+            ]
+          },
+          "needs_review": {
+            "type": "boolean"
+          },
+          "review_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "duration_days": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "duration_is_lower_bound": {
+            "type": "boolean"
+          },
+          "factor_values": {
+            "type": "object",
+            "properties": {
+              "C": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "U": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "B": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "G": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "policy_version": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "is_risk": {
+                  "const": "N"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "urgent": {
+                  "const": "N"
+                },
+                "priority": {
+                  "enum": [
+                    0,
+                    null
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "model_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "question_version": {
+      "type": "string"
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "event_type": {
+      "enum": [
+        "fire_incident",
+        "natural_disaster",
+        "labour_strike",
+        "regulatory_action",
+        "export_restriction",
+        "financial_distress",
+        "quality_recall",
+        "logistics_disruption",
+        "utility_outage",
+        "leadership_change",
+        "acquisition",
+        "recovery",
+        "positive_news",
+        "other",
+        "not_relevant",
+        null
+      ]
+    },
+    "review_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "field",
+          "start",
+          "end",
+          "text"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "field": {
+            "enum": [
+              "headline",
+              "summary"
+            ]
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "is_risk": {
+            "const": "N"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "urgent": {
+            "const": "N"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "analysis_status": {
+            "const": "error"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "is_risk": {
+            "type": "null"
+          },
+          "urgent": {
+            "type": "null"
+          },
+          "error": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "is_risk": {
+            "enum": [
+              "Y",
+              "N"
+            ]
+          },
+          "urgent": {
+            "enum": [
+              "Y",
+              "N"
+            ]
+          },
+          "error": {
+            "type": "null"
+          },
+          "model_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

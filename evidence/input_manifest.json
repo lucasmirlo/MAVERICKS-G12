@@ -1,0 +1,50 @@
+{
+  "files": [
+    {
+      "source_name": "Copy of Supplier_Risk_1_Training.xlsx",
+      "path": "inputs/supplier_training.xlsx",
+      "purpose": "development_and_reference",
+      "sha256": "41e992fb46afb742c3dd54b79eb14c9e75863d71be563851f20d62ebd3798007",
+      "bytes": 25739
+    },
+    {
+      "source_name": "Copy of Supplier_Risk_2_Validation.xlsx",
+      "path": "inputs/supplier_validation.xlsx",
+      "purpose": "held_out_validation",
+      "sha256": "709c6b3a1988350ed84b344aab191153381c071b10ff89a3d8374c80845c2318",
+      "bytes": 13471
+    },
+    {
+      "source_name": "Copy of Supplier_Risk_3_Test.xlsx",
+      "path": "inputs/supplier_test.xlsx",
+      "purpose": "final_test_unlabelled",
+      "sha256": "f3c758c96de441ed8c9e228dd1e26b619b0969793d8c7ca0ccbadec24858411f",
+      "bytes": 14033
+    },
+    {
+      "source_name": "Copy of Supplier_Risk_LiveDay_Feed.xlsx",
+      "path": "inputs/supplier_liveday.xlsx",
+      "purpose": "live_demo_unlabelled",
+      "sha256": "be36ea08220842c8f3a12f823fbce9eaf39f0b879c172bebba27a4c41d232044",
+      "bytes": 12547
+    },
+    {
+      "source_name": "Reto 4.docx",
+      "path": "inputs/brief_original.docx",
+      "purpose": "user_final_brief",
+      "sha256": "0e8eaab76755370838158e4a50712dfa986270225790ab47553df2fe93f0f39e",
+      "bytes": 10577
+    },
+    {
+      "source_name": "image(20261016-153711).png",
+      "path": "inputs/challenge_brief.png",
+      "purpose": "challenge_description",
+      "sha256": "b37f9c7740a9b7a8e610217e5840b410c40b2db4c83c2b2a702dec756f38cc80",
+      "bytes": 188600
+    }
+  ],
+  "answer_key_included": false,
+  "automatic_inference_allowed_during_development": [
+    "supplier_training.xlsx"
+  ]
+}

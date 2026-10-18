@@ -1,0 +1,14 @@
+{
+  "document": "Supplier_Risk_Radar_Especificacion.docx",
+  "pages": 12,
+  "all_pages_visually_reviewed": true,
+  "result": "passed",
+  "checks": [
+    "no clipping or overlap",
+    "readable tables",
+    "black titles and headings",
+    "no title border",
+    "consistent page numbering"
+  ],
+  "review_date": "2026-10-16"
+}

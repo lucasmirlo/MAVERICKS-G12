@@ -1,0 +1,94 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-bg: #f8faff;
+  --color-surface: #ffffff;
+  --color-lavender: #f3f0ff;
+  --color-lavender-strong: #e7e2ff;
+  --color-ink: #0a2540;
+  --color-ink-2: #52647a;
+  --color-line: #dce3ee;
+  --color-accent: #635bff;
+  --color-accent-strong: #4f46e5;
+  --color-cyan: #2bb9e8;
+  --color-pink: #f5a9cc;
+  --color-urgent: #b42318;
+  --color-urgent-bg: #fef3f2;
+  --color-review: #93370d;
+  --color-review-bg: #fffaeb;
+  --color-info: #175cd3;
+  --color-info-bg: #eff8ff;
+  --color-ok: #067647;
+  --color-ok-bg: #ecfdf3;
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgb(10 37 64 / 0.04), 0 4px 16px rgb(10 37 64 / 0.05);
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.gradient-bar {
+  background: linear-gradient(100deg, #635bff 0%, #7a6bff 35%, #2bb9e8 80%, #f5a9cc 100%);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+  z-index: 100;
+  background: white;
+  padding: 8px 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes srr-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-in {
+  animation: srr-fade-in 160ms ease-out;
+}

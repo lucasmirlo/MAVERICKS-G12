@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "status": "initial_policy_not_empirically_calibrated",
+  "default_model": "jev-1.13.0",
+  "question_version": "1.0.0",
+  "weights": {
+    "C": 0.35,
+    "U": 0.3,
+    "B": 0.25,
+    "G": 0.1
+  },
+  "criticality": {
+    "High": 1.0,
+    "Medium": 0.6,
+    "Low": 0.3
+  },
+  "severity_floor": 0.5,
+  "exposure_weight": 0.5,
+  "thresholds": {
+    "link": 0.5,
+    "risk": 0.5,
+    "urgent": 0.5,
+    "review_low": 0.35,
+    "review_high": 0.65,
+    "choice_score_confidence": 0.6,
+    "audible_probability": 0.8
+  },
+  "bands": [
+    {
+      "id": "low",
+      "label_es": "Baja",
+      "min": 0
+    },
+    {
+      "id": "medium",
+      "label_es": "Media",
+      "min": 35
+    },
+    {
+      "id": "high",
+      "label_es": "Alta",
+      "min": 65
+    },
+    {
+      "id": "critical",
+      "label_es": "Crítica",
+      "min": 80
+    }
+  ],
+  "buffer_not_applicable_categories": [
+    "Logistics",
+    "Services"
+  ],
+  "inventory_missing_policy": "omit_buffer_renormalize_available_weights_require_review",
+  "supplier_aggregation": "max_active_incident_priority",
+  "rounding": {
+    "decimals": 1,
+    "mode": "half_up"
+  },
+  "audio": {
+    "cooldown_seconds": 30,
+    "enabled_by_default": false,
+    "require_user_gesture": true,
+    "repeat_historical_alerts": false
+  },
+  "severity_rubric": [
+    "1: No operational interruption described; negligible immediate effect.",
+    "2: Small administrative or organisational change; operations continue.",
+    "3: Limited local friction or very short delay with normal output mostly maintained.",
+    "4: Meaningful warning or disruption affecting a limited activity, with no serious stoppage established.",
+    "5: Partial production or delivery disruption with a credible material effect.",
+    "6: Substantial capacity or logistics constraint; notable supply delays likely from the event.",
+    "7: Major operational disruption affecting a significant production or delivery function.",
+    "8: Production or shipments halted in the affected operation; recovery is consequential or uncertain.",
+    "9: Severe sustained shutdown, prohibition or failure threatening continued deliveries.",
+    "10: Extreme disruption such as destruction or imminent cessation with no credible near-term operating continuity."
+  ],
+  "event_types": {
+    "fire_incident": "Fire, explosion or physical plant incident.",
+    "natural_disaster": "Flood, earthquake, storm, wildfire or other natural hazard.",
+    "labour_strike": "Industrial action or labour dispute affecting operations.",
+    "regulatory_action": "Regulatory restriction, licence or certificate issue, inspection enforcement.",
+    "export_restriction": "Export ban, licensing or trade restrictions.",
+    "financial_distress": "Debt, missed payment, insolvency or credible financial deterioration.",
+    "quality_recall": "Contamination, quality failure or product recall.",
+    "logistics_disruption": "Transport, port, shipping corridor or road disruption.",
+    "utility_outage": "Electricity, water or other utility interruption or rationing.",
+    "leadership_change": "Change of company leadership.",
+    "acquisition": "Ownership change or acquisition affecting strategic supply.",
+    "recovery": "Restoration, reopening or resolution of an earlier interruption.",
+    "positive_news": "Favourable supplier development without a supply threat.",
+    "other": "Another kind of event; do not force a listed category.",
+    "not_relevant": "No event pertinent to supply operations in this article."
+  },
+  "impact_states": {
+    "active": "Disruption is ongoing or impending soon.",
+    "monitoring": "A slower or limited threat merits monitoring without established immediate interruption.",
+    "resolved": "Source reports restoration or end of the relevant disruption.",
+    "positive": "A favourable development without a current threat.",
+    "unrelated": "No relevant operational event or connection.",
+    "unclear": "Evidence is insufficient or conflicting."
+  }
+}
