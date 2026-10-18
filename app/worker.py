@@ -49,8 +49,11 @@ def handle(job: Job, worker_id: str) -> None:
                 _enqueue_plan_summaries(db, incidents.rebuild_context(db, analysis.context_id), job.priority)
                 if needs_adjudication(analysis):
                     # Los resultados de JEV ya están publicados; las parejas dudosas quedan «en análisis».
+                    # Fuera del modo llm la opinión no decide: va al final de la cola para no retrasar el lote.
+                    decides = (analysis.urgency_mode or "llm") == "llm"
                     jobqueue.enqueue(db, "adjudicate_article", {"analysis_id": analysis.id, "version_id": version_id},
-                                     priority=job.priority, idempotency_key=f"adjudicate:{analysis.id}:{analysis.finished_at.timestamp():.3f}", batch_id=job.batch_id,
+                                     priority=job.priority if decides else job.priority + 30, idempotency_key=f"adjudicate:{analysis.id}:{analysis.finished_at.timestamp():.3f}",
+                                     batch_id=job.batch_id if decides else None,
                                      max_attempts=1)
                     db.commit()
                 jobqueue.complete(db, job.id, worker_id)

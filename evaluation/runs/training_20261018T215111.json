@@ -1,0 +1,553 @@
+{
+  "batch_id": "e8316384-ab2d-49c9-8c88-c8ca3cc9a06f",
+  "split": "training",
+  "sheet": "News",
+  "created_at": "2026-10-18T21:51:11.059526+00:00",
+  "articles_total": 30,
+  "articles_evaluated": 30,
+  "excluded": [],
+  "risk": {
+    "n": 30,
+    "positives_labelled": 14,
+    "confusion": {
+      "tp": 13,
+      "fp": 0,
+      "fn": 1,
+      "tn": 16
+    },
+    "precision": 1.0,
+    "recall": 0.9285714285714286,
+    "f1": 0.962962962962963
+  },
+  "urgent": {
+    "n": 30,
+    "positives_labelled": 5,
+    "confusion": {
+      "tp": 5,
+      "fp": 4,
+      "fn": 0,
+      "tn": 21
+    },
+    "precision": 0.5555555555555556,
+    "recall": 1.0,
+    "f1": 0.7142857142857143
+  },
+  "suppliers": {
+    "exact_set_match": 28,
+    "n": 30,
+    "exact_set_accuracy": 0.9333333333333333,
+    "articles_with_labelled_suppliers": 17,
+    "id_precision": 0.7586206896551724,
+    "id_recall": 1.0,
+    "id_counts": {
+      "tp": 22,
+      "fp": 7,
+      "fn": 0
+    }
+  },
+  "per_article": [
+    {
+      "news_id": "N001",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N002",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N005",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N006",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S006:ambiguous_probability",
+        "S014:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N007",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N011",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S013:ambiguous_probability",
+        "S013:low_impact_state_confidence",
+        "S013:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N013",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N014",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S017:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N015",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N017",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N018",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S020:ambiguous_probability",
+        "S020:contradictory_impact_state",
+        "S020:llm_disagrees",
+        "S020:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N020",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N025",
+      "is_risk": [
+        "Y",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S030:ambiguous_probability",
+        "S030:llm_disagrees",
+        "S030:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N028",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N029",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N030",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N033",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N035",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N037",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [
+        "S004",
+        "S015",
+        "S030",
+        "S031",
+        "S038"
+      ],
+      "review": [
+        "S004:ambiguous_probability",
+        "S009:ambiguous_probability",
+        "S015:ambiguous_probability",
+        "S015:low_impact_state_confidence",
+        "S015:no_evidence",
+        "S026:ambiguous_probability",
+        "S028:ambiguous_probability",
+        "S030:ambiguous_probability",
+        "S030:low_impact_state_confidence",
+        "S030:low_severity_confidence",
+        "S030:no_evidence",
+        "S031:ambiguous_probability",
+        "S031:llm_disagrees",
+        "S031:low_impact_state_confidence",
+        "S031:low_severity_confidence",
+        "S031:no_evidence",
+        "S038:ambiguous_probability",
+        "S038:low_impact_state_confidence",
+        "S039:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N039",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S032:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N040",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N042",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N045",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N046",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [
+        "S030",
+        "S031"
+      ],
+      "review": [
+        "S011:ambiguous_probability",
+        "S011:low_impact_state_confidence",
+        "S018:ambiguous_probability",
+        "S018:low_impact_state_confidence",
+        "S018:low_severity_confidence",
+        "S030:ambiguous_probability",
+        "S031:ambiguous_probability",
+        "S031:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N048",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N050",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S011:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N053",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S030:ambiguous_probability",
+        "S030:llm_disagrees",
+        "S038:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N054",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N057",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S027:ambiguous_probability",
+        "S027:llm_disagrees"
+      ]
+    },
+    {
+      "news_id": "N058",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    }
+  ],
+  "decision_sources_pairs": {
+    "jev": 31
+  },
+  "llm": {
+    "doubtful_pairs": 19,
+    "decided": 18,
+    "low_confidence": 0,
+    "no_second_opinion": 1
+  },
+  "caveat": "Muestra pequeña; no indica validez general para una operación real."
+}

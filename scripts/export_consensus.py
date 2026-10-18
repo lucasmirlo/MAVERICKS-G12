@@ -72,8 +72,12 @@ def one_run(batch_id: str, k: int) -> dict:
     with ThreadPoolExecutor(max_workers=4) as pool:
         analysis_ids = [x for x in pool.map(analyze_one, versions) if x]
     t_jev = time.monotonic() - t0
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        adj = list(pool.map(adjudicate_one, analysis_ids))
+    from app.config import get_settings
+    if get_settings().urgency_mode == "llm":
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            adj = list(pool.map(adjudicate_one, analysis_ids))
+    else:
+        adj = []  # en modo jev / regla_y_jev el LLM no decide: el consenso no lo necesita
     with SessionLocal() as db:
         incidents.rebuild_context(db, "exercise")
         batch = db.get(ImportBatch, batch_id)
@@ -155,10 +159,12 @@ def main() -> int:
         arts = {a.external_id: a.id for a in db.scalars(select(Article).where(Article.batch_id == batch_id))}
         for r in rows:
             r["article_id"] = arts[r["news_id"]]
-        info = [("Método", f"Consenso por mayoría de {args.runs} ejecuciones completas (JEV + regla + LLM en dudosos)"),
+        from app.config import get_settings
+        mode = get_settings().urgency_mode
+        info = [("Método", f"Consenso por mayoría de {args.runs} ejecuciones completas · URGENCY_MODE={mode}"),
                 ("Unanimidad", f"{sum(v['unanimous'] for v in voted)} de {len(voted)} filas"),
                 ("Tiempos (s)", ", ".join(str(r["elapsed_s"]) for r in runs)),
-                ("Modelos", ", ".join(sorted({m for r in runs for m in r["models"]} | {llm.status()["model"]}))),
+                ("Modelos", ", ".join(sorted({m for r in runs for m in r["models"]} | ({llm.status()["model"]} if mode == "llm" else set())))),
                 ("Política / preguntas", f"{runs[0]['policy_version']} / {runs[0]['question_version']}")]
         data = build_xlsx(db, batch, rows=rows, extra_info=info)
     xlsx = out_dir / f"supplier_risk_radar_{sheet}_consenso_{stamp}.xlsx"
