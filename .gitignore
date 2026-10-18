@@ -13,3 +13,9 @@ evaluation/runs/
 
 # Bloqueos de LibreOffice
 .~lock.*
+
+# Sprint 2 (local)
+.pgdata/
+.pg.log
+worker.log
+worker.err.log

@@ -29,7 +29,27 @@ Las respuestas de JEV se validan estrictamente (claves, tipos, rangos, opciones)
 - La página **Fuentes** muestra ambos orígenes por separado; los avisos y el sonido solo se emiten para el contexto (y lote) que se está viendo.
 - El modo fixture (`DEMO_FIXTURES_ENABLED=true` y sin clave) etiqueta todo como «Modo fixture · Demostración de interfaz» y sus resultados no son exportables.
 
-## Puesta en marcha local
+## Arranque local de un solo comando (versión 2, sprint 2)
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
+```
+
+Arranca (o crea) un PostgreSQL local en `.pgdata` (puerto 5433, usuario `srr`, sin contraseña, solo en este equipo), aplica las migraciones, compila el frontend si falta (`-Build` para forzarlo), lanza el worker en segundo plano (`worker.log`) y la web en http://localhost:8000. Ctrl+C detiene web y worker. Requisitos: `.venv` con `requirements-dev.txt`, Node 24, PostgreSQL 16+ instalado (o `PG_BIN` apuntando a su carpeta `bin`), `.env` (copia de `.env.example`) e internet para JEV.
+
+Ollama corre fuera, en Windows. Arranca su servidor con contexto de 8 k y comprueba que el modelo cabe entero en la GPU:
+
+```bash
+set OLLAMA_CONTEXT_LENGTH=8192 && ollama serve
+```
+
+```bash
+ollama ps
+```
+
+`ollama ps` debe mostrar `100% GPU` para `qwen3.5:9b`. Si Ollama no responde, la app funciona igual sin segunda opinión (solo regla + JEV) y lo indica en el estado del motor.
+
+## Puesta en marcha local (manual)
 
 Requisitos comprobados: Python 3.13, Node 24, PostgreSQL 16+ (probado con 18).
 
