@@ -38,7 +38,8 @@ def batch_rows(db: Session, batch: ImportBatch) -> list[dict]:
                "is_risk": None, "urgent": None, "affected": [], "blocker": None, "review_reasons": [],
                "manual": False, "cached": bool(an and an.cached), "error_code": an.error_code if an else None,
                "duration_ms": an.duration_ms if an else None}
-        if an is None or an.status in ("pending", "running") or an_pending:
+        llm_pending = bool(an and any(a.llm_status == "pendiente" for a in an.assessments))
+        if an is None or an.status in ("pending", "running") or an_pending or llm_pending:
             row["blocker"] = "pending"
             row["status"] = "pending" if an_pending else row["status"]
         elif an.engine_mode == "fixture":

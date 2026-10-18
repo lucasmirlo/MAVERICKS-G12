@@ -59,7 +59,7 @@ class CallRecord:
     def as_dict(self) -> dict:
         return {"provider": self.provider, "model": self.model, "purpose": self.purpose, "latency_ms": self.latency_ms,
                 "input_tokens": self.input_tokens, "output_tokens": self.output_tokens, "attempts": self.attempts,
-                "outcome": self.outcome}
+                "outcome": self.outcome, **self.extra}
 
 
 class LLMProvider:
@@ -82,10 +82,12 @@ class LLMProvider:
         """Salida JSON validada con Pydantic. Hasta `retries` reintentos si no valida; timeout cuenta como fallo."""
         schema = output.model_json_schema()
         attempts = 0
-        t0 = time.monotonic()
+        queued = time.monotonic()
         usage: dict = {}
         last = "sin respuesta"
         with self._sem:
+            t0 = time.monotonic()  # latencia del modelo, sin la espera en cola
+            wait_ms = int((t0 - queued) * 1000)
             while attempts <= retries:
                 attempts += 1
                 text, usage = self._complete(system, user, schema=schema, max_tokens=self.max_tokens)
@@ -96,9 +98,9 @@ class LLMProvider:
                     log.warning("llm invalid output provider=%s model=%s purpose=%s attempt=%s", self.name, self.model, purpose, attempts)
                     continue
                 rec = CallRecord(self.name, self.model, purpose, int((time.monotonic() - t0) * 1000),
-                                 usage.get("prompt_tokens"), usage.get("completion_tokens"), attempts)
-                log.info("llm call provider=%s model=%s purpose=%s outcome=ok attempts=%s latency_ms=%s in=%s out=%s",
-                         self.name, self.model, purpose, attempts, rec.latency_ms, rec.input_tokens, rec.output_tokens)
+                                 usage.get("prompt_tokens"), usage.get("completion_tokens"), attempts, extra={"wait_ms": wait_ms})
+                log.info("llm call provider=%s model=%s purpose=%s outcome=ok attempts=%s latency_ms=%s wait_ms=%s in=%s out=%s",
+                         self.name, self.model, purpose, attempts, rec.latency_ms, wait_ms, rec.input_tokens, rec.output_tokens)
                 return obj, rec
         log.warning("llm call provider=%s model=%s purpose=%s outcome=invalid_output attempts=%s", self.name, self.model, purpose, attempts)
         raise LLMError("invalid_output", f"La respuesta no validó tras {attempts} intentos: {last}")

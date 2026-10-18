@@ -209,6 +209,8 @@ def article_brief(db: Session, art: Article, an: Analysis | None = None, version
             "engine_mode": an.engine_mode if an else None, "is_risk": an.is_risk if an else None, "urgent": an.urgent if an else None,
             "affected_supplier_ids": an.affected_supplier_ids if an else [], "event_type": an.event_type if an else None,
             "needs_review": bool(an and an.review_reasons), "cached": bool(an and an.cached),
+            "llm_pending": bool(an and any(x.llm_status == "pendiente" for x in an.assessments)),
+            "decision_sources": sorted({x.decision_source for x in an.assessments if x.accepted and x.decision_source}) if an else [],
             "error_code": an.error_code if an else (job.error_code if job else None)}
 
 
@@ -284,8 +286,22 @@ def batch_progress(db: Session, batch: ImportBatch) -> dict:
     articles = list(db.scalars(select(Article).where(Article.batch_id == batch.id)))
     counts = {"done": 0, "review": 0, "error": 0, "running": 0, "pending": 0, "not_started": 0}
     durations = []
+    llm_stats = {"doubtful_pairs": 0, "pending": 0, "decided": 0, "low_confidence": 0, "no_second_opinion": 0, "latencies_ms": [],
+                 "sources": {}}
     for art in articles:
         an = current_analysis(db, art)
+        if an is not None:
+            for x in an.assessments:
+                if x.accepted or x.doubtful:
+                    llm_stats["sources"][x.decision_source or "-"] = llm_stats["sources"].get(x.decision_source or "-", 0) + 1
+                if not x.doubtful:
+                    continue
+                llm_stats["doubtful_pairs"] += 1
+                key = {"pendiente": "pending", "hecha": "decided", "baja_confianza": "low_confidence"}.get(x.llm_status, "no_second_opinion")
+                llm_stats[key] += 1
+                lat = ((x.llm_decision or {}).get("meta") or {}).get("latency_ms")
+                if lat and x.llm_status in ("hecha", "baja_confianza"):
+                    llm_stats["latencies_ms"].append(lat)
         if an is None:
             counts["not_started"] += 1
         else:
@@ -302,7 +318,9 @@ def batch_progress(db: Session, batch: ImportBatch) -> dict:
             "logical_date": iso(batch.logical_date), "created_at": iso(batch.created_at), "diagnostics": batch.diagnostics,
             "analysis_requested_at": iso(batch.analysis_requested_at), "analysis_completed_at": iso(batch.analysis_completed_at),
             "elapsed_seconds": elapsed, "counts": counts, "jobs": {s: n for s, n in jobs},
-            "completed": counts["done"] + counts["review"], "latency": latency(durations)}
+            "completed": counts["done"] + counts["review"], "latency": latency(durations),
+            "llm": {**{k: v for k, v in llm_stats.items() if k != "latencies_ms"}, "n_calls": len(llm_stats["latencies_ms"]),
+                    "mean_latency_ms": int(sum(llm_stats["latencies_ms"]) / len(llm_stats["latencies_ms"])) if llm_stats["latencies_ms"] else None}}
 
 
 def latency(durations: list[int]) -> dict:

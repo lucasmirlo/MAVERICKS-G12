@@ -43,7 +43,8 @@ def main(base: str, manifest_path: str, limit: float = 300.0) -> int:
             p = c.get(f"{base}/api/batches/{bid}").json()
             cnt = p["counts"]
             elapsed = time.monotonic() - t0
-            print(f"  {elapsed:6.1f} s  hechas={cnt['done']} revisión={cnt['review']} error={cnt['error']} pendientes={cnt['pending'] + cnt['running'] + cnt['not_started']}")
+            llm_pending = p.get("llm", {}).get("pending", 0)
+            print(f"  {elapsed:6.1f} s  hechas={cnt['done']} revisión={cnt['review']} error={cnt['error']} pendientes={cnt['pending'] + cnt['running'] + cnt['not_started']} en análisis IA={llm_pending}")
             if p["export"]["ready"]:
                 x = c.get(f"{base}/api/batches/{bid}/export.xlsx")
                 x.raise_for_status()
@@ -52,6 +53,11 @@ def main(base: str, manifest_path: str, limit: float = 300.0) -> int:
                 out.write_bytes(x.content)
                 print(f"\nExportación descargada en {total:.1f} s → {out} ({len(x.content)} bytes)")
                 print(f"Latencia por artículo p50={p['latency']['p50_ms']} ms p95={p['latency']['p95_ms']} ms (n={p['latency']['n']})")
+                if "llm" in p:
+                    m = p["llm"]
+                    print(f"LLM: {m['doubtful_pairs']} parejas dudosas → {m['decided']} decididas, {m['low_confidence']} baja confianza, "
+                          f"{m['no_second_opinion']} sin segunda opinión; latencia media {m['mean_latency_ms']} ms (n={m['n_calls']}); "
+                          f"fuentes de decisión {m['sources']}")
                 print("DENTRO DEL LÍMITE" if total <= limit else f"SUPERA EL LÍMITE DE {limit:.0f} s")
                 return 0 if total <= limit else 1
             if cnt["error"] and not cnt["pending"] and not cnt["running"] and not p["jobs"].get("queued") and not p["jobs"].get("running"):

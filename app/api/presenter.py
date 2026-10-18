@@ -379,6 +379,31 @@ def patch_draft(draft_id: str, body: DraftPatch, db: Session = Depends(get_db)):
     return draft_dict(d)
 
 
+class PairDecision(BaseModel):
+    vinculado: bool
+    es_riesgo: bool
+    urgente: bool
+    nota: str = Field(min_length=3, max_length=1000)
+
+
+@router.post("/assessments/{assessment_id}/decision", dependencies=[Presenter])
+def human_decision(assessment_id: str, body: PairDecision, db: Session = Depends(get_db)):
+    """Decisión de una persona para una pareja (decision_source = humano). Queda registrada con su nota."""
+    a = db.get(SupplierAssessment, assessment_id)
+    if a is None:
+        raise ApiError(404, "assessment_not_found", "Evaluación no encontrada.")
+    if body.urgente and not body.es_riesgo or body.es_riesgo and not body.vinculado:
+        raise ApiError(400, "incoherent_decision", "Urgente exige riesgo y riesgo exige vínculo.")
+    an = db.get(Analysis, a.analysis_id)
+    a.manual_decision = {**body.model_dump(), "at": utcnow().isoformat(), "by": "presenter"}
+    from ..pipeline import apply_decisions
+    from ..policy import get_policy
+    apply_decisions(get_policy(db, an.policy_version), an, {s.supplier_id: s for s in db.scalars(select(Supplier))}, an.event_type)
+    db.commit()
+    incident_engine.rebuild_context(db, an.context_id)
+    return {"assessment_id": a.id, "decision_source": a.decision_source, "is_risk": a.is_risk, "urgent": a.urgent}
+
+
 @router.post("/assessments/{assessment_id}/explanation", dependencies=[Presenter])
 def explain(assessment_id: str, db: Session = Depends(get_db)):
     a = db.get(SupplierAssessment, assessment_id)

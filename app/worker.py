@@ -18,7 +18,8 @@ from . import incidents, jobqueue, rss
 from .config import get_settings
 from .db import SessionLocal, utcnow
 from .logging_setup import setup_logging
-from .models import ImportBatch, Job, Source, Supplier
+from .models import Analysis, ImportBatch, Job, Source, Supplier
+from .adjudication import adjudicate_analysis, needs_adjudication
 from .pipeline import AnalysisFailed, analyze_version
 from .policy import ensure_seeded
 
@@ -46,11 +47,27 @@ def handle(job: Job, worker_id: str) -> None:
             try:
                 analysis = analyze_version(db, version_id, force=bool(job.payload.get("force")))
                 incidents.rebuild_context(db, analysis.context_id)
+                if needs_adjudication(analysis):
+                    # Los resultados de JEV ya están publicados; las parejas dudosas quedan «en análisis».
+                    jobqueue.enqueue(db, "adjudicate_article", {"analysis_id": analysis.id, "version_id": version_id},
+                                     priority=job.priority, idempotency_key=f"adjudicate:{analysis.id}", batch_id=job.batch_id,
+                                     max_attempts=1)
+                    db.commit()
                 jobqueue.complete(db, job.id, worker_id)
             except AnalysisFailed as exc:
                 outcome = jobqueue.fail(db, job.id, worker_id, code=exc.error.code, message=exc.error.message,
                                         retryable=exc.error.retryable)
                 log.warning("job=%s analyze failed code=%s outcome=%s", job.id, exc.error.code, outcome)
+            _maybe_finish_batch(db, job.batch_id)
+        elif job.kind == "adjudicate_article":
+            try:
+                result = adjudicate_analysis(db, job.payload["analysis_id"])
+                an = db.get(Analysis, job.payload["analysis_id"])
+                if an is not None:
+                    incidents.rebuild_context(db, an.context_id)
+                log.info("job=%s adjudication %s", job.id, result)
+            finally:
+                jobqueue.complete(db, job.id, worker_id)
             _maybe_finish_batch(db, job.batch_id)
         elif job.kind == "sync_source":
             result = rss.sync_source(db, job.payload["source_id"], worker_id)
