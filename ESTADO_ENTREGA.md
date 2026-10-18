@@ -39,6 +39,8 @@ Preguntas ajustadas **solo con entrenamiento** (versiones 1.0.0 → 1.1.0 → 1.
 | Validación (n = 10, 5 riesgos y 2 urgentes etiquetados) | VP 4, FP 0, FN 1, VN 5 · P 1,00 · R 0,80 · F1 0,89 | VP 1, FP 1, FN 1, VN 7 · P 0,50 · R 0,50 · F1 0,50 | Conjunto exacto 10/10 · precisión y recobrado por ID 1,00 (10 IDs) |
 | Entrenamiento (n = 30, usado para ajustar) | VP 13, FP 0, FN 1, VN 16 · P 1,00 · R 0,93 | VP 5, FP 0, FN 0, VN 25 | Conjunto exacto 28/30 · precisión por ID 0,73 (22/30) · recobrado 1,00 |
 
+Repetición en Railway (18 oct, 11:51 UTC, mismas preguntas 1.2.0, sin caché): entrenamiento 30 filas en 5,2 s (riesgo VP 13/FP 0/FN 1, urgencia 5/5 sin FP, conjunto exacto 28/30, precisión por ID 0,76); validación 10 filas en 2,9 s (riesgo VP 5/FP 0/FN 0, urgencia VP 1/FP 1/FN 1, conjunto exacto 10/10). La diferencia en el riesgo de validación (4/5 en local, 5/5 en Railway) indica que JEV no es totalmente determinista entre ejecuciones. Con esta repetición, la validación se ha ejecutado dos veces, ambas sin ajustar nada a partir de sus resultados.
+
 Informes JSON en `evaluation/runs/`. Validación con 10 noticias y 2 urgentes: no permite afirmar validez general. Proporción en revisión: 15/30 en entrenamiento, 6/10 en validación, 6/14 en LiveDay (sobre todo probabilidades en la zona 0,35–0,65 y confianza < 0,60 del estado de impacto, tal como fija la política).
 
 ## Criterios A01–A20
