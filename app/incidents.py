@@ -203,6 +203,13 @@ def rebuild_context(db: Session, context_id: str) -> dict:
             continue
         seen_links.add(key)
         db.add(IncidentArticle(**link))
+    # Las evaluaciones de análisis antiguos (otra versión de preguntas, política o modo) dejan de apuntar a incidentes.
+    current_ids = [an.id for an in analyses]
+    stale = select(SupplierAssessment).where(SupplierAssessment.context_id == context_id, SupplierAssessment.incident_id.is_not(None))
+    if current_ids:
+        stale = stale.where(SupplierAssessment.analysis_id.not_in(current_ids))
+    for old in db.scalars(stale):
+        old.incident_id = None
     for analysis in analyses:
         for a in analysis.assessments:
             a.incident_id = assessment_incident.get(a.id)

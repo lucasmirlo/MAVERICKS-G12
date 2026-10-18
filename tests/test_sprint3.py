@@ -96,3 +96,21 @@ def test_model_consensus_reads_saved_runs(tmp_path, monkeypatch):
 def test_meta_reports_web_revision(db):
     meta = TestClient(app).get("/api/meta").json()
     assert meta["worker"]["web_revision"] == code_revision() and len(code_revision()) == 12
+
+
+def test_reanalysis_unlinks_old_assessments(db):
+    from app.config import get_settings
+    from app.models import SupplierAssessment
+    add_catalog(db)
+    _, v, _ = add_article(db, "Fire at Aster Labs", "A fire halted production.")
+    script = {"EXS01": {"link": 0.95, "risk": 0.95, "urgent": 0.9, "severity": 9}}
+    old = analyze_version(db, v.id, client=ScriptedJev(script).client())
+    incidents.rebuild_context(db, "exercise")
+    # Nueva versión de la política → nuevo análisis de la misma versión del artículo.
+    from app.policy import create_version
+    create_version(db, base_version=old.policy_version, changes={"thresholds": {"link": 0.5}}, note="prueba")
+    new = analyze_version(db, v.id, client=ScriptedJev(script).client())
+    incidents.rebuild_context(db, "exercise")
+    db.expire_all()
+    linked = list(db.scalars(select(SupplierAssessment).where(SupplierAssessment.incident_id.is_not(None))))
+    assert [a.analysis_id for a in linked] == [new.id]
