@@ -229,7 +229,11 @@ def rebuild_context(db: Session, context_id: str) -> dict:
         if key not in wanted and key[0] in incidents:
             db.delete(al)
     db.commit()
-    return {"incidents": len(incidents), "orphan_recoveries": orphan_recoveries}
+    # Planes de acción de los incidentes activos (reglas + hechos de la base de datos).
+    from .actions import sync_plans
+    from .policy import active_policy
+    plans_changed = sync_plans(db, context_id, active_policy(db))
+    return {"incidents": len(incidents), "orphan_recoveries": orphan_recoveries, "plans_changed": plans_changed}
 
 
 def _hist(date, art, a: SupplierAssessment, role: str, status: str) -> dict:

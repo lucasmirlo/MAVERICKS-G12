@@ -105,6 +105,22 @@ def products_by_supplier(db: Session) -> dict[str, dict]:
     return out
 
 
+def plan_dict(db: Session, incident_id: str) -> dict | None:
+    from .actions import DEADLINE_LABELS
+    from .models import ActionPlan, Draft
+    plan = db.scalar(select(ActionPlan).where(ActionPlan.incident_id == incident_id))
+    if plan is None:
+        return None
+    drafts = [{"id": d.id, "kind": d.kind, "language": d.language, "subject": d.subject, "edited": d.edited,
+               "target_supplier_id": d.target_supplier_id}
+              for d in db.scalars(select(Draft).where(Draft.plan_id == plan.id).order_by(Draft.kind.desc()))]
+    return {"id": plan.id, "rules_version": plan.rules_version,
+            "actions": [{**a, "deadline_label": DEADLINE_LABELS.get(a["deadline"], a["deadline"])} for a in plan.actions],
+            "facts": plan.facts, "summary": plan.summary_llm if plan.summary_source == "llm" else plan.summary_template,
+            "summary_source": plan.summary_source, "summary_error": plan.summary_error, "drafts": drafts,
+            "updated_at": iso(plan.updated_at)}
+
+
 def incident_summary(db: Session, inc: Incident, clock: datetime, article_cache: dict | None = None) -> dict:
     trigger = None
     links = list(db.scalars(select(IncidentArticle).where(IncidentArticle.incident_id == inc.id).order_by(IncidentArticle.published_at)))
@@ -120,6 +136,7 @@ def incident_summary(db: Session, inc: Incident, clock: datetime, article_cache:
             "review_reasons": inc.review_reasons, "sound_eligible": inc.sound_eligible, "opened_at": iso(inc.opened_at),
             "last_evidence_at": iso(inc.last_evidence_at), "resolved_at": iso(inc.resolved_at), "resolution": inc.resolution,
             "revision": inc.revision, "requires_update": requires_update(inc, clock), "article_count": len(links),
+            "plan": plan_dict(db, inc.id),
             "latest_article": trigger, "history": inc.history or []}
 
 
@@ -361,4 +378,6 @@ def alert_dict(db: Session, al: Alert) -> dict:
             "source_name": art.source_name if art else None, "published_at": iso(art.published_at) if art else None,
             "event_type": inc.event_type if inc else None, "needs_review": inc.needs_review if inc else False,
             "p_link": a.p_link if a else None, "p_risk": a.p_risk if a else None, "p_urgent": a.p_urgent if a else None,
-            "priority_band": a.priority_band if a else None}
+            "priority_band": a.priority_band if a else None,
+            "decision_source": a.decision_source if a else None, "llm_decision": a.llm_decision if a else None,
+            "plan": plan_dict(db, al.incident_id)}

@@ -340,6 +340,29 @@ class Draft(Base):
     factual_context: Mapped[dict] = mapped_column(JSONB, default=dict)
     factual_context_hash: Mapped[str] = mapped_column(String(64))
     edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    plan_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)  # borradores generados desde un plan
+    language: Mapped[str] = mapped_column(String(2), default="es", server_default="es")
+    created_at: Mapped[datetime] = ts(default=utcnow)
+    updated_at: Mapped[datetime] = ts(default=utcnow, onupdate=utcnow)
+
+
+class ActionPlan(Base):
+    """Plan de acción de un incidente: acciones elegidas por reglas (app/actions.py) y hechos de la base de datos."""
+    __tablename__ = "action_plans"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id", ondelete="CASCADE"), unique=True, index=True)
+    context_id: Mapped[str] = mapped_column(String(32), index=True)
+    batch_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    supplier_id: Mapped[str] = mapped_column(String(32))
+    rules_version: Mapped[str] = mapped_column(String(16))
+    actions: Mapped[list] = mapped_column(JSONB, default=list)  # [{code, label, reason, deadline}]
+    facts: Mapped[dict] = mapped_column(JSONB, default=dict)
+    facts_hash: Mapped[str] = mapped_column(String(64))
+    summary_template: Mapped[str] = mapped_column(Text)
+    summary_llm: Mapped[Optional[str]] = mapped_column(Text)
+    summary_source: Mapped[str] = mapped_column(String(16), default="template")  # template | llm
+    summary_error: Mapped[Optional[str]] = mapped_column(Text)
+    summary_meta: Mapped[Optional[dict]] = mapped_column(JSONB)
     created_at: Mapped[datetime] = ts(default=utcnow)
     updated_at: Mapped[datetime] = ts(default=utcnow, onupdate=utcnow)
 

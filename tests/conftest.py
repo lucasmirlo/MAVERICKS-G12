@@ -32,7 +32,7 @@ def migrated():
     yield
 
 
-TABLES = ["alerts", "incident_articles", "incidents", "supplier_assessments", "analyses", "jev_calls", "evaluation_runs",
+TABLES = ["action_plans", "alerts", "incident_articles", "incidents", "supplier_assessments", "analyses", "jev_calls", "evaluation_runs",
           "evaluation_labels", "drafts", "jobs", "article_versions", "articles", "import_batches", "material_products",
           "materials", "suppliers", "sources", "policy_versions", "app_state"]
 

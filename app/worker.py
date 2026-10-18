@@ -46,7 +46,7 @@ def handle(job: Job, worker_id: str) -> None:
             version_id = job.payload["version_id"]
             try:
                 analysis = analyze_version(db, version_id, force=bool(job.payload.get("force")))
-                incidents.rebuild_context(db, analysis.context_id)
+                _enqueue_plan_summaries(db, incidents.rebuild_context(db, analysis.context_id), job.priority)
                 if needs_adjudication(analysis):
                     # Los resultados de JEV ya están publicados; las parejas dudosas quedan «en análisis».
                     jobqueue.enqueue(db, "adjudicate_article", {"analysis_id": analysis.id, "version_id": version_id},
@@ -64,11 +64,17 @@ def handle(job: Job, worker_id: str) -> None:
                 result = adjudicate_analysis(db, job.payload["analysis_id"])
                 an = db.get(Analysis, job.payload["analysis_id"])
                 if an is not None:
-                    incidents.rebuild_context(db, an.context_id)
+                    _enqueue_plan_summaries(db, incidents.rebuild_context(db, an.context_id), job.priority)
                 log.info("job=%s adjudication %s", job.id, result)
             finally:
                 jobqueue.complete(db, job.id, worker_id)
             _maybe_finish_batch(db, job.batch_id)
+        elif job.kind == "plan_summary":
+            from .actions import summarize_with_llm
+            try:
+                log.info("job=%s plan_summary %s", job.id, summarize_with_llm(db, job.payload["plan_id"]))
+            finally:
+                jobqueue.complete(db, job.id, worker_id)
         elif job.kind == "sync_source":
             result = rss.sync_source(db, job.payload["source_id"], worker_id)
             if result.get("outcome") == "skipped_locked" and job.payload.get("manual"):
@@ -77,6 +83,17 @@ def handle(job: Job, worker_id: str) -> None:
             jobqueue.complete(db, job.id, worker_id)
         else:
             jobqueue.fail(db, job.id, worker_id, code="unknown_kind", message=f"Tipo de trabajo desconocido: {job.kind}", retryable=False)
+
+
+def _enqueue_plan_summaries(db, rebuild: dict, priority: int) -> None:
+    """El resumen del LLM es aparte: no retrasa el lote ni la exportación."""
+    from . import llm
+    if not rebuild.get("plans_changed") or not llm.is_available():
+        return
+    for pid in rebuild["plans_changed"]:
+        jobqueue.enqueue(db, "plan_summary", {"plan_id": pid}, priority=priority + 20, max_attempts=1,
+                         idempotency_key=f"plan_summary:{pid}:{int(time.time())}")
+    db.commit()
 
 
 def _maybe_finish_batch(db, batch_id: str | None) -> None:
