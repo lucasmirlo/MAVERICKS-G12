@@ -29,7 +29,7 @@ Las respuestas de JEV se validan estrictamente (claves, tipos, rangos, opciones)
 - La página **Fuentes** muestra ambos orígenes por separado; los avisos y el sonido solo se emiten para el contexto (y lote) que se está viendo.
 - El modo fixture (`DEMO_FIXTURES_ENABLED=true` y sin clave) etiqueta todo como «Modo fixture · Demostración de interfaz» y sus resultados no son exportables.
 
-## Arranque local de un solo comando (versión 2, sprint 2)
+## Arranque local de un solo comando (versiones 2 y 3)
 
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
@@ -47,7 +47,7 @@ set OLLAMA_CONTEXT_LENGTH=8192 && ollama serve
 ollama ps
 ```
 
-`ollama ps` debe mostrar `100% GPU` para `qwen3.5:9b`. Si Ollama no responde, la app funciona igual sin segunda opinión (solo regla + JEV) y lo indica en el estado del motor.
+`ollama ps` debe mostrar `100% GPU` para `qwen3.5:9b`. Si Ollama no responde, la app funciona igual: en el modo por defecto (`URGENCY_MODE=jev`) la IA solo opina, y el estado del motor indica que no está disponible.
 
 ## Puesta en marcha local (manual)
 
@@ -88,15 +88,27 @@ Comprobación de una URL: `python scripts/smoke_test.py <url>`. Medición de un 
 1. Pulsa **Acceso de presentador** y entra con `ADMIN_PASSWORD`.
 2. **Presentador → Importar Excel**: sube un `.xlsx` o importa una entrada del manifiesto (`evidence/input_manifest.json`; la app nunca recorre carpetas ni busca `*.xlsx`). `supplier_training.xlsx` crea el catálogo (40 proveedores, 20 materiales, 6 productos) y el lote de entrenamiento. La importación es idempotente por hash.
 3. **Analizar lote**: encola un trabajo por fila (prioridad sobre RSS). El progreso, el tiempo transcurrido y la latencia p50/p95 (con n) se actualizan cada 3 s.
-4. **Exportar XLSX**: hoja `Resultados` (News_ID, Is_Risk, Urgent, Affected_Supplier_IDs con IDs únicos ordenados unidos por `; `), copia de la hoja original con las columnas de entrada y las respuestas, y hoja `Informe` (modelo, política, revisiones pendientes, decisiones manuales, caché). Bloqueada (HTTP 409) si hay filas pendientes, con error o de fixture.
+4. **Exportar XLSX** (o **CSV**, con las mismas columnas y reglas): hoja `Resultados` (News_ID, Is_Risk, Urgent, Affected_Supplier_IDs con IDs únicos ordenados unidos por `; `), copia de la hoja original con las columnas de entrada y las respuestas, y hoja `Informe` (modelo, política, revisiones pendientes, decisiones manuales, caché). Bloqueada (HTTP 409) si hay filas pendientes, con error o de fixture.
 5. **Fuentes → Actualizar ahora** encola la sincronización real de las seis fuentes.
 6. **Activar sonido** (cada carga de página necesita el gesto), **Probar alarma**, **Silenciar**. Una revisión de alerta elegible suena una vez por pestaña, con cooldown de 30 s y agrupación; el historial no suena al abrir.
-7. En la ficha de proveedor: **Borrador de consulta al proveedor** / **Consultar alternativo** (editable, copiar, descargar TXT; nunca se envía; destinatario pendiente).
+7. En la ficha de proveedor: **Borrador de consulta al proveedor** / **Consultar alternativo** (editable, copiar, descargar TXT; nunca se envía; destinatario pendiente). La página **Borradores** reúne todos, incluidos los de **verificación de vínculo** que generan los planes.
 8. **Evaluar contra etiquetas** (solo lotes con etiquetas: entrenamiento y validación).
 
 Test y LiveDay son ejecución final: no se procesan automáticamente; el botón del lote los ejecuta sin cambiar código. **Reiniciar análisis del lote** borra resultados, alertas derivadas y la caché JEV de ese lote (no las filas importadas) para repetir un ensayo en directo; úsalo con LiveDay antes de la demo.
 
-Preguntas JEV: versión `1.2.0` (`app/jev/questions.py`), ajustada solo con entrenamiento; contexto geográfico inferido en `config/location_enrichment.json` (estado `inferred`, con procedencia). Un vínculo solo inferido por región o ruta se marca `inferred_region` y no habilita sonido automático.
+Preguntas JEV: versión `1.3.0` en local (`app/jev/questions.py`): vínculo y riesgo de la `1.2.0`, ajustados solo con entrenamiento, y la pregunta de urgencia original del kit. Railway sigue en la `1.2.0`. contexto geográfico inferido en `config/location_enrichment.json` (estado `inferred`, con procedencia). Un vínculo solo inferido por región o ruta se marca `inferred_region` y no habilita sonido automático.
+
+## Versión 3 (local): modo de urgencia y páginas nuevas
+
+`URGENCY_MODE` (en `.env`) decide quién fija Urgent:
+
+| Valor | Quién decide | Papel del LLM |
+| --- | --- | --- |
+| `jev` (por defecto) | JEV con la pregunta de urgencia del kit | Opina; si discrepa, la pareja queda marcada para revisión, pero no cambia la decisión ni bloquea la exportación |
+| `regla_y_jev` | Regla P ≥ 50 **y** JEV | Igual que en `jev` |
+| `llm` | Regla + JEV; la IA adjudica las parejas dudosas (versión 2) | Decide y bloquea la exportación mientras tenga parejas pendientes |
+
+Cada análisis guarda el modo con el que se hizo. Páginas nuevas: **Mesa de atención** en el Resumen, **Materiales**, **Borradores** y **Modelo** (configuración, consenso de ejecuciones y uso de motores; historial de ejecuciones en cada noticia). Exportación CSV por lote. El Resumen avisa si la web y el worker ejecutan revisiones de código distintas.
 
 ## Variables de entorno
 

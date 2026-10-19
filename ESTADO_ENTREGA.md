@@ -132,3 +132,59 @@ Ollama atiende las peticiones en serie en esta GPU: con 2 en paralelo, la latenc
 4. LiveDay y Test quedaron analizados en la base local por las mediciones; antes de una demo local se pueden limpiar con `scripts/purge_batch.py` y reimportar.
 5. OpenAI y Anthropic: interfaz preparada (`app/llm/providers.py`), sin implementar.
 6. Audio y móvil físico: sin ensayo en dispositivo real en esta versión.
+
+## Versión 3 (local) · sprint 3
+
+Rama `sprint3`. **Solo local:** Railway sigue en la versión 1, sin `railway up` ni cambios de variables. Fecha: 19 de octubre de 2026. Combina lo mejor de la v2 y de las dos apps del equipo (A y B, que usan la pregunta de urgencia original del kit y en validación sacaban F1 de urgencia 0,80).
+
+| Elemento | Valor |
+| --- | --- |
+| Esquema | Alembic `0006` (`analyses.urgency_mode`) |
+| Modo de urgencia | `URGENCY_MODE=jev` (por defecto): Urgent lo decide JEV con su pregunta. `regla_y_jev` (regla P ≥ 50 **y** JEV) y `llm` (la IA adjudica las parejas dudosas, la v2) siguen disponibles |
+| JEV | `jev-1.13.0`, preguntas **`1.3.0`**: vínculo y riesgo de la 1.2.0 + pregunta de urgencia idéntica a `reference/jev_requests.py` |
+| Política | `1.1.1` (umbral de prioridad 50; `action_rules` 1.1.0 con la acción `verify_link`, p_vínculo < 0,65) |
+| LLM | Ollama `qwen3.5:9b`: explica, redacta planes y da su opinión, visible para revisión. Fuera del modo `llm` no decide ni bloquea la exportación, y sus trabajos van con prioridad baja y sin lote |
+
+### Métricas con denominadores
+
+| Lote | Versión | Is_Risk | Urgent | Proveedores |
+| --- | --- | --- | --- | --- |
+| Training (n = 30; 14 riesgos, 5 urgentes) | v1 | VP 13 · FP 0 · FN 1 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 |
+| Training | v2 | VP 12 · FP 0 · FN 2 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 |
+| Training | **v3** | VP 13 · FP 0 · FN 1 · VN 16 (P 1,00 · R 0,93 · F1 0,96) | VP 5 · FP 4 · FN 0 · VN 21 (P 0,56 · R 1,00 · F1 0,71) | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
+| Validación (n = 10) | v3 | **no ejecutada** | — | — |
+
+Training solo se usó para **confirmar** la v3, no para ajustarla: la pregunta de urgencia es la del kit, sin retoques. Sus 4 falsos positivos de urgencia (N018, N046, N053, N057) son el precio de copiar la pregunta que mejor generalizó en validación en las apps A y B. La validación **no se ha vuelto a ejecutar**: ya lleva 3 usos y un cuarto dejaría de ser una medida limpia. Por eso, en la base local, el lote de validación conserva sus análisis de la v2 (preguntas 1.2.0), que aparecen como «Regla + JEV» o «IA» en la mesa de atención.
+
+### Test por consenso
+
+`scripts/export_consensus.py --split test` con `URGENCY_MODE=jev`: 3 ejecuciones completas con la caché JEV vaciada (6,1 · 6,1 · 6,2 s), voto por mayoría. **18 de 20 filas unánimes**; N036 (ID S032 en 2 de 3) y N055 (riesgo 2 de 3). Resultado: 8 riesgos y 5 urgentes. Archivo: `evaluation/runs/supplier_risk_radar_News_Test_consenso_20261018_2352.xlsx`. Coincidencia con las otras apps (solo comparación, sin etiquetas): con A, 19/20 en riesgo y 19/20 en urgencia; con B, 20/20 en riesgo. Test no se usó para ajustar nada.
+
+### Tiempos medidos en local
+
+| Lote | v2 (modo llm) | v3 (modo jev) |
+| --- | --- | --- |
+| 14 noticias, clic → XLSX (objetivo ≤ 120 s) | 41,1 s | **8,3 s** |
+| Test, 20 noticias, una ejecución (objetivo ≤ 180 s) | 55,8 s | **≈ 6 s** |
+
+El panel del lote separa ahora el **tiempo en cola** del **tiempo de proceso**.
+
+### Funciones nuevas
+
+- **Mesa de atención** (Resumen, idea de B): los casos activos, primero los urgentes y luego por prioridad, cada uno con quién decide (JEV, regla, IA, humano), el margen de stock y sus dos próximas acciones con plazo.
+- **Modelo** (idea de B): configuración activa, quién decidió cada pareja, consenso por fila y uso de JEV y del LLM; en cada noticia, historial de sus ejecuciones.
+- **Materiales** (idea de B): qué material se queda sin salida si su principal está afectado, con el alternativo aprobado y los productos en juego.
+- **Borradores** (idea de A): lista de todos los correos con filtro por tipo. Nuevo tipo **Verificación de vínculo**: si el vínculo es solo regional, tiene p_vínculo < 0,65 o la IA discrepa, el plan pide confirmar con el proveedor y redacta el correo en su idioma.
+- **CSV** del lote (idea de A) con las mismas reglas que el XLSX.
+- **Versión de web y worker** (idea de B): el worker publica su revisión en el heartbeat y el Resumen avisa si no coincide con la de la web.
+- Arreglo: al reconstruir incidentes se desvinculan las evaluaciones de análisis antiguos (antes la mesa mostraba fuentes de decisión de versiones anteriores).
+
+### Pruebas y revisión
+
+125 pruebas automáticas en verde. Revisión visual de Resumen, Alertas, Materiales, Borradores y Modelo a 1440, 768, 390 y 360 px sin desbordamiento horizontal; se corrigió el nombre largo del XLSX en Modelo, que desbordaba en móvil.
+
+### Pendientes de la versión 3
+
+1. Urgencia: la v3 cambia 4 falsos positivos en training por la pregunta que mejor generalizó en A y B. No hay medida limpia en validación (se evitó el cuarto uso); la única referencia independiente es la coincidencia del Test con A y B.
+2. Llevar la v3 a Railway solo con autorización: migración `0006`, `URGENCY_MODE=jev`, redeploy de web y worker (la mesa avisará si quedan con revisiones distintas) y volver a analizar los lotes.
+3. Los pendientes 1, 2, 5 y 6 de la versión 2 siguen igual.

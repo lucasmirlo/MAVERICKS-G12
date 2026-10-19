@@ -104,7 +104,7 @@ export default function Model() {
           {cons.isLoading ? <Loading /> : !cons.data?.items.length ? (
             <p className="text-sm text-ink-2">Aún no hay consensos guardados en evaluation/runs.</p>
           ) : cons.data.items.map((r) => (
-            <section key={r.file} className="rounded-xl border border-line p-3">
+            <section key={r.file} className="min-w-0 rounded-xl border border-line p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold">{r.sheet} · {r.stamp}</p>
                 <div className="flex flex-wrap gap-1">
@@ -114,7 +114,7 @@ export default function Model() {
                 </div>
               </div>
               <p className="mt-1 text-xs text-ink-2">
-                Ejecuciones: {r.runs.map((x) => `${x.run}: ${fmtNum(x.elapsed_s, 1)} s${x.llm_pairs ? ` (${x.llm_pairs} al LLM)` : ''}`).join(' · ')} · archivo {r.xlsx}
+                Ejecuciones: {r.runs.map((x) => `${x.run}: ${fmtNum(x.elapsed_s, 1)} s${x.llm_pairs ? ` (${x.llm_pairs} al LLM)` : ''}`).join(' · ')} · archivo <span className="break-all">{r.xlsx}</span>
               </p>
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full min-w-[30rem] text-left text-sm">
