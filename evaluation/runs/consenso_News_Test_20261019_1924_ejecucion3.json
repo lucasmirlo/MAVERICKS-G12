@@ -1,0 +1,231 @@
+{
+  "run": 3,
+  "urgency_mode": "jev",
+  "elapsed_s": 5.2,
+  "jev_s": 4.9,
+  "llm_pairs": 0,
+  "llm": [],
+  "models": [
+    "jev-1.13.0"
+  ],
+  "policy_version": "1.1.2",
+  "question_version": "1.3.0",
+  "blockers": [],
+  "rows": [
+    {
+      "news_id": "N003",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S007"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "S007:ambiguous_probability",
+        "S007:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N004",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S002"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N009",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S015"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N010",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N012",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S035"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N016",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S022"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "S022:ambiguous_probability",
+        "S022:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N021",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N023",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N024",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S025"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N026",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N031",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S026"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N036",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S032"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "S032:ambiguous_probability",
+        "S032:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N038",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N043",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S037"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence",
+        "S037:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N047",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S029"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence",
+        "S029:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N049",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N052",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S028"
+      ],
+      "status": "done",
+      "review_reasons": []
+    },
+    {
+      "news_id": "N055",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S032"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "low_event_type_confidence",
+        "S032:ambiguous_probability"
+      ]
+    },
+    {
+      "news_id": "N059",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S001"
+      ],
+      "status": "review",
+      "review_reasons": [
+        "S001:ambiguous_probability",
+        "S001:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N060",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S020"
+      ],
+      "status": "done",
+      "review_reasons": []
+    }
+  ]
+}

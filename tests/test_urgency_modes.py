@@ -33,6 +33,14 @@ def test_jev_mode_follows_p_urgent():
     assert r["urgent"] == "Y" and r["decision_source"] == "jev" and r["sound_eligible"]
 
 
+def test_policy_1_1_2_urgent_threshold():
+    # 1.1.2: 0,64, centro del hueco de training (falsa alarma más alta 0,59, urgente real más baja 0,68).
+    assert POLICY["version"] == "1.1.2" and POLICY["thresholds"]["urgent"] == 0.64
+    assert run("jev", pair(p_urgent=0.59))[0]["urgent"] == "N"
+    assert run("jev", pair(p_urgent=0.64))[0]["urgent"] == "Y"
+    assert run("jev", pair(p_urgent=0.68))[0]["urgent"] == "Y"
+
+
 def test_regla_y_jev_requires_both():
     assert run("regla_y_jev", pair(p_urgent=0.2))[0]["urgent"] == "N"
     assert run("regla_y_jev", pair(p_urgent=0.9))[0]["urgent"] == "Y"

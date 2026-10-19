@@ -1,0 +1,494 @@
+{
+  "batch": "f74d2474-f0c0-428c-91d2-8e77ce4d9473",
+  "sheet": "News_Test",
+  "runs": [
+    {
+      "run": 1,
+      "elapsed_s": 5.1,
+      "jev_s": 4.9,
+      "llm_pairs": 0,
+      "models": [
+        "jev-1.13.0"
+      ]
+    },
+    {
+      "run": 2,
+      "elapsed_s": 4.9,
+      "jev_s": 4.7,
+      "llm_pairs": 0,
+      "models": [
+        "jev-1.13.0"
+      ]
+    },
+    {
+      "run": 3,
+      "elapsed_s": 5.2,
+      "jev_s": 4.9,
+      "llm_pairs": 0,
+      "models": [
+        "jev-1.13.0"
+      ]
+    }
+  ],
+  "unanimous_rows": 18,
+  "rows": 20,
+  "voted": [
+    {
+      "news_id": "N003",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S007"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S007": 3
+        }
+      }
+    },
+    {
+      "news_id": "N004",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S002"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ids": {
+          "S002": 3
+        }
+      }
+    },
+    {
+      "news_id": "N009",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S015"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ids": {
+          "S015": 3
+        }
+      }
+    },
+    {
+      "news_id": "N010",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N012",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S035"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ids": {
+          "S035": 3
+        }
+      }
+    },
+    {
+      "news_id": "N016",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S022"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S022": 3
+        }
+      }
+    },
+    {
+      "news_id": "N021",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N023",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N024",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S025"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ids": {
+          "S025": 3
+        }
+      }
+    },
+    {
+      "news_id": "N026",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N031",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S026"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S026": 3
+        }
+      }
+    },
+    {
+      "news_id": "N036",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S032"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S032": 3
+        }
+      }
+    },
+    {
+      "news_id": "N038",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N043",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S037"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S037": 3
+        }
+      }
+    },
+    {
+      "news_id": "N047",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S029"
+      ],
+      "unanimous": false,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "N",
+          "Y"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S029": 3
+        }
+      }
+    },
+    {
+      "news_id": "N049",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {}
+      }
+    },
+    {
+      "news_id": "N052",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S028"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S028": 3
+        }
+      }
+    },
+    {
+      "news_id": "N055",
+      "is_risk": "Y",
+      "urgent": "N",
+      "affected": [
+        "S032"
+      ],
+      "unanimous": false,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "N",
+          "Y"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S032": 3
+        }
+      }
+    },
+    {
+      "news_id": "N059",
+      "is_risk": "N",
+      "urgent": "N",
+      "affected": [
+        "S001"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "N",
+          "N",
+          "N"
+        ],
+        "urgent": [
+          "N",
+          "N",
+          "N"
+        ],
+        "ids": {
+          "S001": 3
+        }
+      }
+    },
+    {
+      "news_id": "N060",
+      "is_risk": "Y",
+      "urgent": "Y",
+      "affected": [
+        "S020"
+      ],
+      "unanimous": true,
+      "votes": {
+        "is_risk": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "urgent": [
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ids": {
+          "S020": 3
+        }
+      }
+    }
+  ],
+  "xlsx": "supplier_risk_radar_News_Test_consenso_20261019_1924.xlsx"
+}

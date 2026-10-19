@@ -1,6 +1,7 @@
 {
-  "version": "1.1.1",
-  "status": "initial_policy_urgency_threshold_calibrated_on_training_only",
+  "version": "1.1.2",
+  "status": "urgency_thresholds_chosen_on_training_only",
+  "urgent_threshold_note": "1.1.2: thresholds.urgent 0,50 → 0,64, centro del hueco en training entre la falsa alarma con p_urgent más alto (0,59) y la urgente real más baja (0,68), preguntas 1.3.0, sin llamadas nuevas a JEV (scripts/urgency_experiment.py). Validación no usada.",
   "default_model": "jev-1.13.0",
   "question_version": "1.0.0",
   "weights": {
@@ -19,7 +20,7 @@
   "thresholds": {
     "link": 0.5,
     "risk": 0.5,
-    "urgent": 0.5,
+    "urgent": 0.64,
     "review_low": 0.35,
     "review_high": 0.65,
     "choice_score_confidence": 0.6,

@@ -142,7 +142,7 @@ Rama `sprint3`. **Solo local:** Railway sigue en la versión 1, sin `railway up`
 | Esquema | Alembic `0006` (`analyses.urgency_mode`) |
 | Modo de urgencia | `URGENCY_MODE=jev` (por defecto): Urgent lo decide JEV con su pregunta. `regla_y_jev` (regla P ≥ 50 **y** JEV) y `llm` (la IA adjudica las parejas dudosas, la v2) siguen disponibles |
 | JEV | `jev-1.13.0`, preguntas **`1.3.0`**: vínculo y riesgo de la 1.2.0 + pregunta de urgencia idéntica a `reference/jev_requests.py` |
-| Política | `1.1.1` (umbral de prioridad 50; `action_rules` 1.1.0 con la acción `verify_link`, p_vínculo < 0,65) |
+| Política | **`1.1.2`**: umbral de urgencia de JEV (`thresholds.urgent`) **0,64** (antes 0,50); umbral de prioridad 50; `action_rules` 1.1.0 con la acción `verify_link`, p_vínculo < 0,65 |
 | LLM | Ollama `qwen3.5:9b`: explica, redacta planes y da su opinión, visible para revisión. Fuera del modo `llm` no decide ni bloquea la exportación, y sus trabajos van con prioridad baja y sin lote |
 
 ### Métricas con denominadores
@@ -151,14 +151,23 @@ Rama `sprint3`. **Solo local:** Railway sigue en la versión 1, sin `railway up`
 | --- | --- | --- | --- | --- |
 | Training (n = 30; 14 riesgos, 5 urgentes) | v1 | VP 13 · FP 0 · FN 1 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 |
 | Training | v2 | VP 12 · FP 0 · FN 2 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 |
-| Training | **v3** | VP 13 · FP 0 · FN 1 · VN 16 (P 1,00 · R 0,93 · F1 0,96) | VP 5 · FP 4 · FN 0 · VN 21 (P 0,56 · R 1,00 · F1 0,71) | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
+| Training | v3 (política 1.1.1, umbral 0,50) | VP 13 · FP 0 · FN 1 · VN 16 (P 1,00 · R 0,93 · F1 0,96) | VP 5 · FP 4 · FN 0 · VN 21 (P 0,56 · R 1,00 · F1 0,71) | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
+| Training | **v3 · política 1.1.2 (umbral 0,64)** | VP 13 · FP 0 · FN 1 · VN 16 | **VP 5 · FP 0 · FN 0 · VN 25 (F1 1,00)** | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
 | Validación (n = 10) | v3 | **no ejecutada** | — | — |
 
 Training solo se usó para **confirmar** la v3, no para ajustarla: la pregunta de urgencia es la del kit, sin retoques. Sus 4 falsos positivos de urgencia (N018, N046, N053, N057) son el precio de copiar la pregunta que mejor generalizó en validación en las apps A y B. La validación **no se ha vuelto a ejecutar**: ya lleva 3 usos y un cuarto dejaría de ser una medida limpia. Por eso, en la base local, el lote de validación conserva sus análisis de la v2 (preguntas 1.2.0), que aparecen como «Regla + JEV» o «IA» en la mesa de atención.
 
+### Umbral de urgencia 0,64 (política 1.1.2)
+
+`scripts/urgency_experiment.py` recalcula Urgent con los valores JEV ya guardados de training, sin llamadas nuevas. Las 5 urgentes reales tienen p_urgente de 0,68 a 0,86; las 4 falsas alarmas, de 0,54 a 0,59. Cualquier umbral entre 0,60 y 0,68 da F1 1,00; se eligió **0,64**, el centro del hueco redondeado (margen de 0,05 sobre la falsa alarma más alta y de 0,04 bajo la urgente real más baja). Dejando una noticia fuera y eligiendo el umbral con las otras 29 también sale 5/0/0 (umbrales elegidos 0,63–0,66). El filtro extra (vínculo firme e impacto activo) solo quitaba 2 de las 4 falsas alarmas y no añade nada con el umbral, así que **no se aplica**. Informe: `evaluation/runs/experimento_urgencia_training.json`.
+
+Confirmación con la política activa: training reanalizado solo desde la caché JEV (30 noticias en 3,2 s, ninguna llamada): urgencia **VP 5 · FP 0 · FN 0 · VN 25**, riesgo e IDs sin cambios (`evaluation/runs/training_20261019T172435.json`).
+
+Límites: 5 urgentes etiquetadas y un margen de solo 0,04 hasta la urgente real más baja (N014, 0,68). No se ha medido cuánto varía p_urgente entre ejecuciones de JEV, y la validación no se usó.
+
 ### Test por consenso
 
-`scripts/export_consensus.py --split test` con `URGENCY_MODE=jev`: 3 ejecuciones completas con la caché JEV vaciada (6,1 · 6,1 · 6,2 s), voto por mayoría. **18 de 20 filas unánimes**; N036 (ID S032 en 2 de 3) y N055 (riesgo 2 de 3). Resultado: 8 riesgos y 5 urgentes. Archivo: `evaluation/runs/supplier_risk_radar_News_Test_consenso_20261018_2352.xlsx`. Coincidencia con las otras apps (solo comparación, sin etiquetas): con A, 19/20 en riesgo y 19/20 en urgencia; con B, 20/20 en riesgo. Test no se usó para ajustar nada.
+`scripts/export_consensus.py --split test` con `URGENCY_MODE=jev`: 3 ejecuciones completas con la caché JEV vaciada (6,1 · 6,1 · 6,2 s), voto por mayoría. **18 de 20 filas unánimes**; N036 (ID S032 en 2 de 3) y N055 (riesgo 2 de 3). Resultado: 8 riesgos y 5 urgentes. Archivo: `evaluation/runs/supplier_risk_radar_News_Test_consenso_20261018_2352.xlsx`. **Con la política 1.1.2** (19 de octubre, 3 ejecuciones de 5,1 · 4,9 · 5,2 s): 18/20 unánimes (N047 y N055, riesgo 2 de 3) y **el mismo resultado fila a fila** (8 riesgos, 5 urgentes: N004, N009, N012, N024, N060). Ninguna pareja del Test quedaba entre 0,50 y 0,64. Archivo vigente: `evaluation/runs/supplier_risk_radar_News_Test_consenso_20261019_1924.xlsx`. Coincidencia con las otras apps (solo comparación, sin etiquetas): con A, 19/20 en riesgo y 19/20 en urgencia; con B, 20/20 en riesgo. Test no se usó para ajustar nada.
 
 ### Tiempos medidos en local
 
@@ -185,6 +194,6 @@ El panel del lote separa ahora el **tiempo en cola** del **tiempo de proceso**.
 
 ### Pendientes de la versión 3
 
-1. Urgencia: la v3 cambia 4 falsos positivos en training por la pregunta que mejor generalizó en A y B. No hay medida limpia en validación (se evitó el cuarto uso); la única referencia independiente es la coincidencia del Test con A y B.
+1. Urgencia: con la política 1.1.2 desaparecen las 4 falsas alarmas de training, pero el umbral se eligió con esas mismas 30 noticias. No hay medida limpia en validación (se evitó el cuarto uso); la única referencia independiente es la coincidencia del Test con A y B.
 2. Llevar la v3 a Railway solo con autorización: migración `0006`, `URGENCY_MODE=jev`, redeploy de web y worker (la mesa avisará si quedan con revisiones distintas) y volver a analizar los lotes.
 3. Los pendientes 1, 2, 5 y 6 de la versión 2 siguen igual.
