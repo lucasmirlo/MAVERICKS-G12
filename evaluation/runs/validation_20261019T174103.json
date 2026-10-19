@@ -1,0 +1,218 @@
+{
+  "batch_id": "ae0f7dda-42fb-4821-9c42-bc79f4902372",
+  "split": "validation",
+  "sheet": "News_Validation",
+  "created_at": "2026-10-19T17:41:03.454876+00:00",
+  "articles_total": 10,
+  "articles_evaluated": 10,
+  "excluded": [],
+  "risk": {
+    "n": 10,
+    "positives_labelled": 5,
+    "confusion": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 1,
+      "tn": 5
+    },
+    "precision": 1.0,
+    "recall": 0.8,
+    "f1": 0.888888888888889
+  },
+  "urgent": {
+    "n": 10,
+    "positives_labelled": 2,
+    "confusion": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 1,
+      "tn": 7
+    },
+    "precision": 0.5,
+    "recall": 0.5,
+    "f1": 0.5
+  },
+  "suppliers": {
+    "exact_set_match": 10,
+    "n": 10,
+    "exact_set_accuracy": 1.0,
+    "articles_with_labelled_suppliers": 7,
+    "id_precision": 1.0,
+    "id_recall": 1.0,
+    "id_counts": {
+      "tp": 10,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "per_article": [
+    {
+      "news_id": "N008",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S012:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N019",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "low_event_type_confidence"
+      ]
+    },
+    {
+      "news_id": "N022",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S009:ambiguous_probability",
+        "S009:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N027",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N032",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N034",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    },
+    {
+      "news_id": "N041",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "Y",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S001:ambiguous_probability",
+        "S002:ambiguous_probability",
+        "S006:low_severity_confidence"
+      ]
+    },
+    {
+      "news_id": "N044",
+      "is_risk": [
+        "Y",
+        "Y"
+      ],
+      "urgent": [
+        "N",
+        "Y"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "S024:ambiguous_probability",
+        "S024:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N051",
+      "is_risk": [
+        "Y",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": [
+        "low_event_type_confidence",
+        "S040:ambiguous_probability",
+        "S040:low_impact_state_confidence"
+      ]
+    },
+    {
+      "news_id": "N056",
+      "is_risk": [
+        "N",
+        "N"
+      ],
+      "urgent": [
+        "N",
+        "N"
+      ],
+      "ids_missing": [],
+      "ids_extra": [],
+      "review": []
+    }
+  ],
+  "decision_sources_pairs": {
+    "jev": 10
+  },
+  "llm": {
+    "doubtful_pairs": 3,
+    "decided": 0,
+    "low_confidence": 0,
+    "no_second_opinion": 3
+  },
+  "caveat": "Muestra pequeña; no indica validez general para una operación real."
+}

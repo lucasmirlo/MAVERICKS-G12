@@ -153,7 +153,7 @@ Rama `sprint3`. **Solo local:** Railway sigue en la versión 1, sin `railway up`
 | Training | v2 | VP 12 · FP 0 · FN 2 · VN 16 | VP 5 · FP 0 · FN 0 · VN 25 | exacto 28/30 |
 | Training | v3 (política 1.1.1, umbral 0,50) | VP 13 · FP 0 · FN 1 · VN 16 (P 1,00 · R 0,93 · F1 0,96) | VP 5 · FP 4 · FN 0 · VN 21 (P 0,56 · R 1,00 · F1 0,71) | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
 | Training | **v3 · política 1.1.2 (umbral 0,64)** | VP 13 · FP 0 · FN 1 · VN 16 | **VP 5 · FP 0 · FN 0 · VN 25 (F1 1,00)** | exacto 28/30 · precisión ID 0,76 · recobrado 1,00 |
-| Validación (n = 10) | v3 | **no ejecutada** | — | — |
+| Validación (n = 10; 5 riesgos, 2 urgentes) · **cuarto uso** | **v3 · política 1.1.2** | VP 4 · FP 0 · FN 1 · VN 5 (F1 0,89) | VP 1 · FP 1 · FN 1 · VN 7 (F1 0,50) | exacto 10/10 · precisión y recobrado por ID 1,00 |
 
 Training solo se usó para **confirmar** la v3, no para ajustarla: la pregunta de urgencia es la del kit, sin retoques. Sus 4 falsos positivos de urgencia (N018, N046, N053, N057) son el precio de copiar la pregunta que mejor generalizó en validación en las apps A y B. La validación **no se ha vuelto a ejecutar**: ya lleva 3 usos y un cuarto dejaría de ser una medida limpia. Por eso, en la base local, el lote de validación conserva sus análisis de la v2 (preguntas 1.2.0), que aparecen como «Regla + JEV» o «IA» en la mesa de atención.
 
@@ -164,6 +164,16 @@ Training solo se usó para **confirmar** la v3, no para ajustarla: la pregunta d
 Confirmación con la política activa: training reanalizado solo desde la caché JEV (30 noticias en 3,2 s, ninguna llamada): urgencia **VP 5 · FP 0 · FN 0 · VN 25**, riesgo e IDs sin cambios (`evaluation/runs/training_20261019T172435.json`).
 
 Límites: 5 urgentes etiquetadas y un margen de solo 0,04 hasta la urgente real más baja (N014, 0,68). No se ha medido cuánto varía p_urgente entre ejecuciones de JEV, y la validación no se usó.
+
+### Validación de la v3 (cuarto uso, 19 de octubre)
+
+Pedida expresamente. Una sola ejecución con la configuración congelada (modo `jev`, preguntas 1.3.0, política 1.1.2), JEV real sin caché, 10 noticias en 10,1 s; después no se ha cambiado nada. Informe: `evaluation/runs/validation_20261019T174103.json`.
+
+- Riesgo: VP 4 · FP 0 · FN 1 (N051 queda en N). Proveedores: 10/10 exactos, sin ID de más ni de menos (la v2 perdía S024 en N044).
+- Urgencia: VP 1 · FP 1 · FN 1, **F1 0,50**, igual que la v1 y por encima de la v2 (0,40). Falla N041 (urgente real, p_urgente máx 0,59) y marca N044 (no urgente, 0,66).
+- Con las **mismas respuestas de JEV** y el umbral anterior de 0,50, la urgencia habría sido VP 2 · FP 1 · FN 0, **F1 0,80** (la cifra de A y B): el umbral 0,64 elegido en training es el que pierde N041. Es decir, el hueco de training no se generaliza: una urgente real de validación tiene el mismo p_urgente que las falsas alarmas de training. Este dato es informativo; volver a 0,50 por él sería ajustar con validación.
+
+La validación queda gastada: cualquier decisión tomada a partir de estas cifras ya no podrá medirse con ella.
 
 ### Test por consenso
 
@@ -194,6 +204,6 @@ El panel del lote separa ahora el **tiempo en cola** del **tiempo de proceso**.
 
 ### Pendientes de la versión 3
 
-1. Urgencia: con la política 1.1.2 desaparecen las 4 falsas alarmas de training, pero el umbral se eligió con esas mismas 30 noticias. No hay medida limpia en validación (se evitó el cuarto uso); la única referencia independiente es la coincidencia del Test con A y B.
+1. Urgencia: la política 1.1.2 quita las 4 falsas alarmas de training, pero en validación pierde una urgente real (F1 0,50 frente a 0,80 con el umbral 0,50). Hace falta un conjunto etiquetado nuevo para decidir el umbral con una medida limpia. No hay medida limpia en validación (se evitó el cuarto uso); la única referencia independiente es la coincidencia del Test con A y B.
 2. Llevar la v3 a Railway solo con autorización: migración `0006`, `URGENCY_MODE=jev`, redeploy de web y worker (la mesa avisará si quedan con revisiones distintas) y volver a analizar los lotes.
 3. Los pendientes 1, 2, 5 y 6 de la versión 2 siguen igual.
